@@ -4,6 +4,7 @@
             "id": "user_1",
             "name": "Jagi Singh",
             "email": "jagi@example.com",
+            "password": "password123",
             "emailVerified": true,
             "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jagi"
         },
@@ -11,6 +12,7 @@
             "id": "user_2",
             "name": "Sarah Dev",
             "email": "sarah@example.com",
+            "password": "password123",
             "emailVerified": true,
             "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
         }
