@@ -4,6 +4,7 @@ import { Pool } from "pg";
 import * as schema from "../schema";
 import data from "./data.json";
 import { auth } from "@/lib/auth";
+import { sql } from "drizzle-orm";
 
 const projectDir = process.cwd();
 loadEnvConfig(projectDir);
@@ -18,10 +19,21 @@ const db = drizzle(pool, { schema });
 const generateDummyVector = () =>
     Array.from({ length: 1536 }, () => Math.random());
 
+async function clearDatabase() {
+    console.log("🗑️  Emptying existing data...");
+    // CASCADE automatically handles foreign key constraints by clearing dependent tables
+    // RESTART IDENTITY resets any auto-incrementing IDs back to 1
+    await db.execute(
+        sql`TRUNCATE TABLE "items", "account", "session", "user", "verification" RESTART IDENTITY CASCADE;`
+    );
+}
+
 async function main() {
     console.log("🚀 Starting database seed...");
 
     try {
+        await clearDatabase();
+
         // 1. Seed Users via Better Auth API
         console.log("👤 Creating users and accounts...");
         const userMap: Record<string, string> = {}; // To map dummy IDs to real DB IDs
