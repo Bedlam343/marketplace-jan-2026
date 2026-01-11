@@ -1,6 +1,7 @@
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { user, items, messages, account } from "./schema";
 import { z } from "zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { user, items, messages, itemConditionEnum } from "./schema";
+import { GCS_DOMAIN } from "@/utils/constants";
 
 export const selectUserSchema = createSelectSchema(user);
 
@@ -34,18 +35,44 @@ export type SignupFieldErrors = z.ZodFlattenedError<
     z.infer<typeof insertUserSchema>
 >["fieldErrors"];
 
+// --- Item Schemas ---
 export const selectItemSchema = createSelectSchema(items);
 export const insertItemSchema = createInsertSchema(items, {
     title: z.string().min(5, "Title must be at least 5 characters long"),
+    description: z
+        .string()
+        .min(10, "Description must be at least 10 characters long"),
     price: (s) =>
         s.refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
             message: "Price must be a positive number",
         }),
+    condition: z.enum(itemConditionEnum.enumValues, {
+        message: "Please select a valid item condition",
+    }),
+    images: z
+        .array(
+            z
+                .url("Invalid image URL")
+                .startsWith(
+                    `${GCS_DOMAIN}`,
+                    "Image must be uploaded to our storage"
+                )
+        )
+        .min(1, "At least one image is required")
+        .max(5, "You can upload a maximum of 5 images"),
 }).omit({
     id: true,
     createdAt: true,
     updatedAt: true,
+    sellerId: true,
+    embedding: true,
+    status: true, // Status will default to 'available'
 });
+
+export type CreateItemFieldErrors = z.ZodFlattenedError<
+    z.infer<typeof insertItemSchema>
+>["fieldErrors"];
+// --- Message Schemas --- //
 
 export const selectMessageSchema = createSelectSchema(messages);
 export const insertMessageSchema = createInsertSchema(messages, {
