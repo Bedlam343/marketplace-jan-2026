@@ -3,7 +3,10 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { eq } from "drizzle-orm";
 
+import { generateEmbedding } from "@/lib/openai";
 import { authenticatedAction } from "@/lib/safe-action";
 import { db } from "@/db";
 import { items } from "@/db/schema";
@@ -39,11 +42,19 @@ export const createItemAction = async (
             };
         }
 
+        let newItemId: string;
+
         try {
-            await db.insert(items).values({
-                ...validationFields.data,
-                sellerId: session.user.id,
-            });
+            const [insertedItem] = await db
+                .insert(items)
+                .values({
+                    ...validationFields.data,
+                    sellerId: session.user.id,
+                    embedding: null, // Temporarily set to null
+                })
+                .returning({ id: items.id }); // Get the inserted item's ID
+
+            newItemId = insertedItem.id;
         } catch (error) {
             return {
                 success: false,
@@ -51,7 +62,29 @@ export const createItemAction = async (
             };
         }
 
-        // **TEMPORARY
+        // background task to generate and update embedding
+        after(async () => {
+            try {
+                const textToEmbed = `${validationFields.data.title} ${validationFields.data.description}`;
+                const embedding = await generateEmbedding(textToEmbed);
+
+                // Update the specific item with the vector
+                await db
+                    .update(items)
+                    .set({ embedding })
+                    .where(eq(items.id, newItemId));
+
+                console.log(
+                    `Background: Embedding generated for item ${newItemId}`
+                );
+            } catch (error) {
+                console.error(
+                    "Background error generating embedding for item:",
+                    error
+                );
+            }
+        });
+
         revalidatePath("/dashboard");
         redirect("/dashboard");
     });

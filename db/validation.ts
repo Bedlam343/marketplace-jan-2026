@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { user, items, messages, itemConditionEnum } from "./schema";
+import { user, items, messages, itemConditionEnum } from "@/db/schema";
 import { GCS_DOMAIN } from "@/utils/constants";
 
 export const selectUserSchema = createSelectSchema(user);
@@ -72,6 +72,19 @@ export const insertItemSchema = createInsertSchema(items, {
 export type CreateItemFieldErrors = z.ZodFlattenedError<
     z.infer<typeof insertItemSchema>
 >["fieldErrors"];
+
+export const itemFilterSchema = z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(50).default(12),
+    search: z.string().optional(),
+    condition: z.enum(itemConditionEnum.enumValues).optional(),
+    minPrice: z.coerce.number().optional(),
+    maxPrice: z.coerce.number().optional(),
+    sellerId: z.string().optional(),
+});
+
+export type ItemFilters = z.infer<typeof itemFilterSchema>;
+
 // --- Message Schemas --- //
 
 export const selectMessageSchema = createSelectSchema(messages);

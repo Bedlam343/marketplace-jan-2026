@@ -1,0 +1,84 @@
+// data layer for fetching items with filters
+// doesn't care how it's called, just provides the data
+
+import { desc, eq, and, gte, lte, count, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { items, user } from "@/db/schema";
+import { itemFilterSchema, type ItemFilters } from "@/db/validation";
+import { generateEmbedding } from "@/lib/openai";
+import { SIMILARITY_THRESHOLD } from "@/utils/constants";
+
+export const getItems = async (filters: ItemFilters) => {
+    const validation = itemFilterSchema.safeParse(filters);
+
+    const {
+        page = 1,
+        limit = 12,
+        search,
+        condition,
+        minPrice,
+        maxPrice,
+        sellerId,
+    } = validation.success ? validation.data : { page: 1, limit: 12 };
+
+    const offset = (page - 1) * limit;
+
+    // Build dynamic conditions
+    const whereConditions = [eq(items.status, "available")];
+    if (sellerId) whereConditions.push(eq(items.sellerId, sellerId));
+    if (condition) whereConditions.push(eq(items.condition, condition));
+    if (minPrice) whereConditions.push(gte(items.price, minPrice.toString()));
+    if (maxPrice) whereConditions.push(lte(items.price, maxPrice.toString()));
+
+    let orderBy = desc(items.createdAt);
+
+    if (search) {
+        const searchEmbedding = await generateEmbedding(search);
+        const vectorStr = JSON.stringify(searchEmbedding);
+
+        const similarity = sql`1 - (${items.embedding} <=> ${vectorStr}::vector)`;
+
+        // Only include items with similarity above a threshold
+        whereConditions.push(sql`${similarity} > ${SIMILARITY_THRESHOLD}`);
+
+        orderBy = desc(similarity);
+    }
+
+    const [totalResult, rows] = await Promise.all([
+        db
+            .select({ count: count() })
+            .from(items)
+            .where(and(...whereConditions)),
+        db
+            .select({
+                id: items.id,
+                title: items.title,
+                price: items.price,
+                images: items.images,
+                condition: items.condition,
+                createdAt: items.createdAt,
+                seller: {
+                    name: user.name,
+                    image: user.image,
+                },
+            })
+            .from(items)
+            .leftJoin(user, eq(items.sellerId, user.id)) // join to get seller info
+            .where(and(...whereConditions))
+            .limit(limit)
+            .offset(offset)
+            .orderBy(orderBy),
+    ]);
+
+    return {
+        data: rows,
+        pagination: {
+            total: totalResult[0].count,
+            pages: Math.ceil(totalResult[0].count / limit),
+            currentPage: page,
+        },
+    };
+};
+
+export type GetItemResult = Awaited<ReturnType<typeof getItems>>;
+export type ItemWithSeller = GetItemResult["data"][number];
