@@ -6,22 +6,29 @@ import { db } from "@/db";
 import { items, user } from "@/db/schema";
 import { itemFilterSchema, type ItemFilters } from "@/db/validation";
 import { generateEmbedding } from "@/lib/openai";
-import { SIMILARITY_THRESHOLD } from "@/utils/constants";
+import {
+    SIMILARITY_THRESHOLD,
+    ITEM_LIMIT_DEFAULT,
+    ITEM_LIMIT_MAX,
+} from "@/utils/constants";
 
 export const getItems = async (filters: ItemFilters) => {
     const validation = itemFilterSchema.safeParse(filters);
 
     const {
         page = 1,
-        limit = 12,
+        limit = ITEM_LIMIT_DEFAULT,
         search,
         condition,
         minPrice,
         maxPrice,
         sellerId,
-    } = validation.success ? validation.data : { page: 1, limit: 12 };
+    } = validation.success
+        ? validation.data
+        : { page: 1, limit: ITEM_LIMIT_DEFAULT };
 
-    const offset = (page - 1) * limit;
+    const numItems = Math.min(limit, ITEM_LIMIT_MAX);
+    const offset = (page - 1) * numItems;
 
     // Build dynamic conditions
     const whereConditions = [eq(items.status, "available")];
@@ -65,7 +72,7 @@ export const getItems = async (filters: ItemFilters) => {
             .from(items)
             .leftJoin(user, eq(items.sellerId, user.id)) // join to get seller info
             .where(and(...whereConditions))
-            .limit(limit)
+            .limit(numItems)
             .offset(offset)
             .orderBy(orderBy),
     ]);
@@ -74,7 +81,7 @@ export const getItems = async (filters: ItemFilters) => {
         data: rows,
         pagination: {
             total: totalResult[0].count,
-            pages: Math.ceil(totalResult[0].count / limit),
+            pages: Math.ceil(totalResult[0].count / numItems),
             currentPage: page,
         },
     };

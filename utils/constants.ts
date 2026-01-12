@@ -3,3 +3,8 @@ export const GCS_MAX_SIZE = 5 * 1024 * 1024; // 5MB
 export const GCS_DOMAIN = "https://storage.googleapis.com";
 
 export const SIMILARITY_THRESHOLD = 0.3;
+export const ITEM_LIMIT_DEFAULT = 12;
+export const ITEM_LIMIT_MAX = 50;
+
+export const ORDER_LIMIT_DEFAULT = 10;
+export const ORDER_LIMIT_MAX = 25;

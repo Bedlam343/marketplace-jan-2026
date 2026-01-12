@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { user, items, messages, itemConditionEnum } from "@/db/schema";
-import { GCS_DOMAIN } from "@/utils/constants";
+import {
+    GCS_DOMAIN,
+    ITEM_LIMIT_DEFAULT,
+    ITEM_LIMIT_MAX,
+} from "@/utils/constants";
 
 export const selectUserSchema = createSelectSchema(user);
 
@@ -75,7 +79,11 @@ export type CreateItemFieldErrors = z.ZodFlattenedError<
 
 export const itemFilterSchema = z.object({
     page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(12),
+    limit: z.coerce
+        .number()
+        .min(1)
+        .max(ITEM_LIMIT_MAX)
+        .default(ITEM_LIMIT_DEFAULT),
     search: z.string().optional(),
     condition: z.enum(itemConditionEnum.enumValues).optional(),
     minPrice: z.coerce.number().optional(),

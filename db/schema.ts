@@ -96,3 +96,25 @@ export const messages = pgTable("messages", {
     content: text("content").notNull(),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
 });
+
+export const orderStatusEnum = pgEnum("order_status", [
+    "pending",
+    "completed",
+    "cancelled",
+    "refunded",
+]);
+export const orders = pgTable("orders", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    itemId: uuid("itemId")
+        .notNull()
+        .references(() => items.id),
+    buyerId: text("buyerId")
+        .notNull()
+        .references(() => user.id),
+    sellerId: text("sellerId") // Redundant but makes Seller Dashboard queries much faster
+        .notNull()
+        .references(() => user.id),
+    amountPaid: decimal("amountPaid", { precision: 10, scale: 2 }).notNull(),
+    status: orderStatusEnum("status").notNull().default("completed"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
