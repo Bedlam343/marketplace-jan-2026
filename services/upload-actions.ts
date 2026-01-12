@@ -52,8 +52,6 @@ export const getGCPUploadSignedUrl = async (
                         contentType: fileType,
                     });
 
-                console.log("Result signed URL:", result);
-
                 const fileUrl = `${GCS_DOMAIN}/${BUCKET_NAME}/${filename}`;
 
                 return { success: true, signedUrl: result[0], fileUrl };
