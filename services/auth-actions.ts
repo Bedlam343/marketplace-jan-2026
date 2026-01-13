@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { auth } from "@/lib/auth";
 import { authClient, betterAuthErrorCodes } from "@/lib/auth-client";
 import {
     loginSchema,
@@ -11,6 +12,7 @@ import {
     LoginFieldErrors,
     SignupFieldErrors,
 } from "@/db/validation";
+import { APIError } from "better-auth";
 
 export type LoginActionResponse = {
     success?: boolean;
@@ -77,32 +79,56 @@ export const signupAction = async (
 
     const { name, email, password } = validationFields.data;
 
-    const { error } = await authClient.signUp.email({
-        email,
-        password,
-        name,
-    });
+    try {
+        await auth.api.signUpEmail({
+            body: {
+                email,
+                password,
+                name,
+            },
+        });
+    } catch (error) {
+        console.error("Signup error:", error);
 
-    if (error) {
-        if (
-            error.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL" ||
-            error.status === 422
-        ) {
+        if (error instanceof APIError) {
+            const code = error.body?.code || error.status.toString();
+
+            if (
+                code === "USER_ALREADY_EXISTS" ||
+                code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
+            ) {
+                return {
+                    success: false,
+                    errors: {
+                        email: [
+                            betterAuthErrorCodes
+                                .USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL.message,
+                        ],
+                    },
+                };
+            }
+
+            if (code === "PASSWORD_TOO_SHORT") {
+                return {
+                    success: false,
+                    errors: {
+                        password: [
+                            betterAuthErrorCodes.PASSWORD_TOO_SHORT.message,
+                        ],
+                    },
+                };
+            }
+
             return {
                 success: false,
-                errors: {
-                    // Use the message from our centralized mapping
-                    email: [
-                        betterAuthErrorCodes
-                            .USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL.message,
-                    ],
-                },
+                message:
+                    error.message || "Something went wrong. Please try again.",
             };
         }
 
         return {
             success: false,
-            message: error.message || "Signup failed.",
+            message: "An unexpected error occurred. Please try again.",
         };
     }
 
