@@ -73,7 +73,7 @@ export const signupAction = async (
     if (!validationFields.success) {
         return {
             success: false,
-            errors: validationFields.error.flatten().fieldErrors,
+            errors: z.flattenError(validationFields.error).fieldErrors,
         };
     }
 

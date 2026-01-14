@@ -1,11 +1,20 @@
 "use client";
 
 import { useState, useActionState } from "react";
+import { z } from "zod";
 import { signupAction } from "@/services/auth-actions";
+import { insertUserSchema, type SignupFieldErrors } from "@/db/validation";
+
 import { Input } from "@/components/ui/input";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
+import { PasswordMatch } from "./PasswordMatch";
 
 export function SignupForm() {
+    // 1. useActionState handles the server response
     const [state, action, isPending] = useActionState(signupAction, undefined);
+
+    // 2. Local state for client-side only errors (to show them before hitting server)
+    const [clientErrors, setClientErrors] = useState<SignupFieldErrors>({});
 
     const [formData, setFormData] = useState({
         name: "",
@@ -19,10 +28,43 @@ export function SignupForm() {
             ...prev,
             [e.target.name]: e.target.value,
         }));
+        // Clear specific error when user starts typing again
+        if (clientErrors[e.target.name as keyof SignupFieldErrors]) {
+            setClientErrors((prev) => ({
+                ...prev,
+                [e.target.name]: undefined,
+            }));
+        }
     };
 
+    // 3. The Validation Wrapper
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setClientErrors({}); // Reset client errors
+
+        const payload = new FormData(event.currentTarget);
+        const rawData = Object.fromEntries(payload.entries());
+
+        // Run Zod on the client
+        const result = insertUserSchema.safeParse(rawData);
+
+        if (!result.success) {
+            // If Zod fails, set local errors and STOP the submission
+            const formattedErrors = z.flattenError(result.error).fieldErrors;
+            setClientErrors(formattedErrors);
+            return;
+        }
+
+        // If Zod passes, call the Server Action manually
+        action(payload);
+    }
+
+    // Merge errors: Priority to clientErrors, fallback to server state errors
+    const errors = { ...state?.errors, ...clientErrors };
+
     return (
-        <form action={action} className="space-y-6">
+        /* 4. Use onSubmit instead of action for manual control */
+        <form onSubmit={handleSubmit} className="space-y-6">
             {state?.message && !state.success && (
                 <div className="rounded-md bg-red-50 p-4 border border-red-100">
                     <p className="text-sm font-medium text-red-800">
@@ -34,13 +76,12 @@ export function SignupForm() {
             <Input
                 id="name"
                 name="name"
-                type="text"
                 label="Full Name"
                 placeholder="Jane Doe"
                 value={formData.name}
                 onChange={handleChange}
                 disabled={isPending}
-                error={state?.errors?.name}
+                error={errors.name}
             />
 
             <Input
@@ -52,7 +93,7 @@ export function SignupForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isPending}
-                error={state?.errors?.email}
+                error={errors.email}
             />
 
             <Input
@@ -64,8 +105,10 @@ export function SignupForm() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={isPending}
-                error={state?.errors?.password}
+                error={errors.password}
             />
+
+            <PasswordRequirements value={formData.password} />
 
             <Input
                 id="confirmPassword"
@@ -76,7 +119,12 @@ export function SignupForm() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={isPending}
-                error={state?.errors?.confirmPassword}
+                error={errors.confirmPassword}
+            />
+
+            <PasswordMatch
+                password={formData.password}
+                confirm={formData.confirmPassword}
             />
 
             <div>
@@ -85,7 +133,7 @@ export function SignupForm() {
                     disabled={isPending}
                     className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-slate-800 disabled:opacity-70 transition-all cursor-pointer"
                 >
-                    {isPending ? "Creating account..." : "Create account"}
+                    {isPending ? "Validating..." : "Create account"}
                 </button>
             </div>
         </form>
