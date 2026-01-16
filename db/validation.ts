@@ -26,6 +26,8 @@ export const insertUserSchema = baseUserSchema
             .regex(/[A-Z]/, "Include at least one uppercase letter")
             .regex(/[0-9]/, "Include at least one number"),
         confirmPassword: z.string(),
+        // TO DO: validate crypto wallet address
+        cryptoWalletAddress: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords do not match",
@@ -64,8 +66,8 @@ export const insertItemSchema = createInsertSchema(items, {
                 .url("Invalid image URL")
                 .startsWith(
                     `${GCS_DOMAIN}`,
-                    "Image must be uploaded to our storage"
-                )
+                    "Image must be uploaded to our storage",
+                ),
         )
         .min(1, "At least one image is required")
         .max(5, "You can upload a maximum of 5 images"),

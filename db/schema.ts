@@ -7,6 +7,7 @@ import {
     decimal,
     vector,
     pgEnum,
+    integer,
 } from "drizzle-orm/pg-core";
 
 // User Table and Session Table for Better Auth Integration
@@ -16,6 +17,9 @@ export const user = pgTable("user", {
     email: text("email").notNull().unique(),
     emailVerified: boolean("emailVerified").notNull(),
     image: text("image"),
+
+    cryptoWalletAddress: text("cryptoWalletAddress"),
+
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
@@ -103,6 +107,7 @@ export const orderStatusEnum = pgEnum("order_status", [
     "cancelled",
     "refunded",
 ]);
+export const paymentMethodEnum = pgEnum("paymentMethod", ["card", "crypto"]);
 export const orders = pgTable("orders", {
     id: uuid("id").primaryKey().defaultRandom(),
     itemId: uuid("itemId")
@@ -114,7 +119,27 @@ export const orders = pgTable("orders", {
     sellerId: text("sellerId") // Redundant but makes Seller Dashboard queries much faster
         .notNull()
         .references(() => user.id),
-    amountPaid: decimal("amountPaid", { precision: 10, scale: 2 }).notNull(),
+
+    // pricing snapshots
+    amountPaidUsd: decimal("amountPaidUsd", {
+        precision: 10,
+        scale: 2,
+    }).notNull(),
+    amountPaidCrypto: text("amountPaidCrypto"), // stored as text to handle high precision
+
+    // payment tracking
+    paymentMethod: paymentMethodEnum("paymentMethod").notNull().default("card"),
+
+    // crypto payment tracking
+    txHash: text("txHash"), // unique identifier on the blockchain
+    chainId: integer("chainId"), // e.g. 11155111 for Sepolia
+    walletAddress: text("walletAddress"), // the address the buyer used
+
+    // card payment tracking
+    stripePaymentIntentId: text("stripePaymentIntentId"),
+    cardBrand: text("cardBrand"),
+    cardLast4: text("cardLast4"),
+
     status: orderStatusEnum("status").notNull().default("completed"),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
 });

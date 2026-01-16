@@ -101,8 +101,11 @@ export const getItemById = async (id: string) => {
             createdAt: items.createdAt,
             status: items.status,
             seller: {
+                id: user.id,
                 name: user.name,
+                email: user.email,
                 image: user.image,
+                cryptoWalletAddress: user.cryptoWalletAddress,
             },
         })
         .from(items)
@@ -115,3 +118,4 @@ export const getItemById = async (id: string) => {
 
 export type GetItemResult = Awaited<ReturnType<typeof getItems>>;
 export type ItemWithSeller = GetItemResult["data"][number];
+export type ItemWithSellerWallet = Awaited<ReturnType<typeof getItemById>>;

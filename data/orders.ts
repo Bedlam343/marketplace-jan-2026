@@ -10,7 +10,7 @@ export async function getOrders(
     userId: string,
     role: OrderRole,
     page = 1,
-    limit = ORDER_LIMIT_DEFAULT
+    limit = ORDER_LIMIT_DEFAULT,
 ) {
     const numOrders = Math.min(limit, ORDER_LIMIT_MAX);
     const offset = (page - 1) * numOrders;
@@ -34,9 +34,18 @@ export async function getOrders(
         db
             .select({
                 id: orders.id,
-                amountPaid: orders.amountPaid,
                 status: orders.status,
                 createdAt: orders.createdAt,
+                payment: {
+                    amountPaidUsd: orders.amountPaidUsd,
+                    amountPaidCrypto: orders.amountPaidCrypto,
+                    method: orders.paymentMethod,
+                    txHash: orders.txHash,
+                    walletAddress: orders.walletAddress,
+                    stripePaymentIntentId: orders.stripePaymentIntentId,
+                    cardBrand: orders.cardBrand,
+                    cardLast4: orders.cardLast4,
+                },
                 // Item Details (Snapshot)
                 item: {
                     id: items.id,
