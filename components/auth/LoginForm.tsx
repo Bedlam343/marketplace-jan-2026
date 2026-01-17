@@ -23,10 +23,10 @@ export function LoginForm() {
 
     return (
         <form action={action} className="space-y-6">
-            {/* Global Error (e.g., Invalid Credentials) */}
+            {/* Global Error */}
             {state?.message && !state.success && (
-                <div className="rounded-md bg-red-50 p-4 border border-red-100">
-                    <p className="text-sm font-medium text-red-800">
+                <div className="rounded-lg bg-destructive/10 p-4 border border-destructive/20">
+                    <p className="text-sm font-medium text-destructive">
                         {state.message}
                     </p>
                 </div>
@@ -37,6 +37,7 @@ export function LoginForm() {
                 name="email"
                 type="email"
                 label="Email address"
+                labelColor="text-muted-foreground"
                 placeholder="jane@example.com"
                 value={formData.email}
                 onChange={handleChange}
@@ -50,6 +51,7 @@ export function LoginForm() {
                     name="password"
                     type="password"
                     label="Password"
+                    labelColor="text-muted-foreground"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
@@ -57,10 +59,10 @@ export function LoginForm() {
                     error={state?.errors?.password}
                 />
 
-                <div className="flex justify-end mt-1">
+                <div className="flex justify-end mt-2">
                     <Link
                         href="/forgot-password"
-                        className="text-xs font-medium text-accent hover:text-indigo-500"
+                        className="text-xs font-medium text-accent hover:text-accent/80 transition-colors"
                     >
                         Forgot your password?
                     </Link>
@@ -71,7 +73,7 @@ export function LoginForm() {
                 <button
                     type="submit"
                     disabled={isPending}
-                    className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-slate-800 disabled:opacity-70 transition-all cursor-pointer"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-70 disabled:cursor-not-allowed transition-all"
                 >
                     {isPending ? "Signing in..." : "Sign in"}
                 </button>

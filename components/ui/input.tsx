@@ -2,17 +2,21 @@ import { forwardRef } from "react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
+    labelColor?: string;
     error?: string[];
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, error, className = "", ...props }, ref) => {
+    ({ label, labelColor, error, className = "", ...props }, ref) => {
         return (
-            <div className="space-y-1">
+            <div className="space-y-2">
                 {label && (
                     <label
                         htmlFor={props.id}
-                        className="block text-sm font-medium text-slate-700"
+                        // Default to foreground, but allow override
+                        className={`block text-sm font-medium ${
+                            labelColor ? labelColor : "text-foreground"
+                        }`}
                     >
                         {label}
                     </label>
@@ -21,27 +25,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     <input
                         ref={ref}
                         className={`
-                        appearance-none block w-full px-3 py-2 
-                        border border-slate-300 rounded-lg shadow-sm 
-                        placeholder-slate-400 
-                        focus:outline-none focus:ring-1 
-                        focus:ring-slate-900 focus:border-slate-900 
-                        sm:text-sm transition-colors
-                        disabled:opacity-50 disabled:bg-slate-50
-                        text-primary
-                        ${
-                            error
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                                : ""
-                        }
-                        ${className}
+                            appearance-none block w-full px-3 py-2
+                            bg-secondary 
+                            border border-input 
+                            rounded-lg shadow-sm 
+                            text-foreground 
+                            placeholder-muted-foreground 
+                            focus:outline-none focus:ring-[1px] 
+                            focus:ring-ring focus:border-ring 
+                            sm:text-sm transition-all
+                            disabled:opacity-50 disabled:cursor-not-allowed
+              ${
+                  error
+                      ? "border-destructive focus:border-destructive focus:ring-destructive"
+                      : ""
+              }
+              ${className}
             `}
                         {...props}
                     />
                 </div>
                 {error && (
                     <p
-                        className="text-xs text-red-600 animate-pulse"
+                        className="text-xs text-destructive font-medium animate-pulse"
                         role="alert"
                     >
                         {error[0]}
@@ -49,7 +55,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 )}
             </div>
         );
-    }
+    },
 );
 
 Input.displayName = "Input";
