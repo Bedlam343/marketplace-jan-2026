@@ -19,6 +19,9 @@ export const user = pgTable("user", {
     image: text("image"),
 
     cryptoWalletAddress: text("cryptoWalletAddress"),
+    stripeCustomerId: text("stripeCustomerId"),
+    savedCardBrand: text("savedCardBrand"),
+    savedCardLast4: text("savedCardLast4"),
 
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
@@ -108,6 +111,13 @@ export const orderStatusEnum = pgEnum("order_status", [
     "refunded",
 ]);
 export const paymentMethodEnum = pgEnum("paymentMethod", ["card", "crypto"]);
+export const cardBrandEnum = pgEnum("cardBrand", [
+    "visa",
+    "mastercard",
+    "amex",
+    "discover",
+    "other",
+]);
 export const orders = pgTable("orders", {
     id: uuid("id").primaryKey().defaultRandom(),
     itemId: uuid("itemId")
@@ -131,15 +141,19 @@ export const orders = pgTable("orders", {
     paymentMethod: paymentMethodEnum("paymentMethod").notNull().default("card"),
 
     // crypto payment tracking
-    txHash: text("txHash"), // unique identifier on the blockchain
+    txHash: text("txHash").unique(), // unique identifier on the blockchain
     chainId: integer("chainId"), // e.g. 11155111 for Sepolia
     walletAddress: text("walletAddress"), // the address the buyer used
 
     // card payment tracking
-    stripePaymentIntentId: text("stripePaymentIntentId"),
-    cardBrand: text("cardBrand"),
+    stripePaymentIntentId: text("stripePaymentIntentId").unique(),
+    cardBrand: cardBrandEnum("cardBrand"),
     cardLast4: text("cardLast4"),
 
     status: orderStatusEnum("status").notNull().default("completed"),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt")
+        .notNull()
+        .defaultNow()
+        .$onUpdate(() => new Date()),
 });

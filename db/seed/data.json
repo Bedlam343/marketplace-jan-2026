@@ -2,43 +2,99 @@
     "users": [
         {
             "id": "user_1",
-            "name": "Jagi Singh",
-            "email": "jagi@example.com",
-            "password": "password123",
+            "name": "Jagi Seller",
+            "email": "jagi_seller@example.com",
+            "password": "Password123!",
             "emailVerified": true,
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jagi"
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jagi",
+            "cryptoWalletAddress": "0x5381BDC5a9DBDF92cE87c6F06f97B50c37095d04",
+            "stripeCustomerId": "cus_test_jagi_99",
+            "savedCardBrand": "visa",
+            "savedCardLast4": "4242"
         },
         {
             "id": "user_2",
-            "name": "Sarah Dev",
-            "email": "sarah@example.com",
-            "password": "password123",
+            "name": "Sarah Buyer",
+            "email": "sarah_buyer@example.com",
+            "password": "Password123!",
             "emailVerified": true,
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+            "cryptoWalletAddress": "0x15a1402C6ccCCb393B2F78983B5cf29b87FD1464",
+            "stripeCustomerId": "cus_test_sarah_44",
+            "savedCardBrand": "mastercard",
+            "savedCardLast4": "8822"
         },
         {
             "id": "user_3",
-            "name": "Mike Chen",
-            "email": "mike@example.com",
-            "password": "password123",
+            "name": "Mike Seller",
+            "email": "mike_seller@example.com",
+            "password": "Password123!",
             "emailVerified": true,
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike"
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
+            "cryptoWalletAddress": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "stripeCustomerId": null,
+            "savedCardBrand": null,
+            "savedCardLast4": null
         },
         {
             "id": "user_4",
-            "name": "Emily Blunt",
-            "email": "emily@example.com",
-            "password": "password123",
+            "name": "Emily Buyer",
+            "email": "emily_buyer@example.com",
+            "password": "Password123!",
             "emailVerified": true,
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily"
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily",
+            "cryptoWalletAddress": null,
+            "stripeCustomerId": "cus_K293812300",
+            "savedCardBrand": "amex",
+            "savedCardLast4": "1005"
         },
         {
             "id": "user_5",
             "name": "David Ross",
-            "email": "david@example.com",
-            "password": "password123",
+            "email": "david_mixed@example.com",
+            "password": "Password123!",
             "emailVerified": true,
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=David"
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+            "cryptoWalletAddress": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "stripeCustomerId": "cus_L123091283",
+            "savedCardBrand": "visa",
+            "savedCardLast4": "1111"
+        },
+        {
+            "id": "user_6",
+            "name": "Alex Chen",
+            "email": "alex_seller@example.com",
+            "password": "Password123!",
+            "emailVerified": true,
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+            "cryptoWalletAddress": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+            "stripeCustomerId": null,
+            "savedCardBrand": null,
+            "savedCardLast4": null
+        },
+        {
+            "id": "user_7",
+            "name": "Jessica Wu",
+            "email": "jessica_buyer@example.com",
+            "password": "Password123!",
+            "emailVerified": true,
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica",
+            "cryptoWalletAddress": null,
+            "stripeCustomerId": "cus_test_jess_55",
+            "savedCardBrand": "visa",
+            "savedCardLast4": "5555"
+        },
+        {
+            "id": "user_8",
+            "name": "Tom Baker",
+            "email": "tom_mixed@example.com",
+            "password": "Password123!",
+            "emailVerified": true,
+            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Tom",
+            "cryptoWalletAddress": "0xA1234567890abcdef1234567890abcdef12345",
+            "stripeCustomerId": null,
+            "savedCardBrand": null,
+            "savedCardLast4": null
         }
     ],
     "items": [
@@ -46,7 +102,7 @@
             "id": "item_1",
             "sellerId": "user_1",
             "title": "Vintage Mechanical Keyboard",
-            "description": "Clicky blue switches, slightly dusty but works perfectly.",
+            "description": "Clicky blue switches, slightly dusty but works perfectly. Ideal for typists.",
             "price": "85.00",
             "condition": "good",
             "status": "available",
@@ -54,9 +110,9 @@
         },
         {
             "id": "item_2",
-            "sellerId": "user_2",
+            "sellerId": "user_3",
             "title": "Refurbished Macbook Air M2",
-            "description": "Midnight color, 16GB RAM. Like new condition.",
+            "description": "Midnight color, 16GB RAM. Like new condition. Original box included.",
             "price": "950.00",
             "condition": "like-new",
             "status": "available",
@@ -69,14 +125,14 @@
             "description": "Used for 2 years, shutter count 15k. Great condition.",
             "price": "1200.00",
             "condition": "good",
-            "status": "sold",
+            "status": "available",
             "images": ["https://picsum.photos/seed/camera/400/400"]
         },
         {
             "id": "item_4",
             "sellerId": "user_3",
             "title": "Herman Miller Aeron Chair",
-            "description": "Size B, fully loaded. Mesh is perfect.",
+            "description": "Size B, fully loaded. Mesh is perfect. Pick up only.",
             "price": "450.00",
             "condition": "good",
             "status": "available",
@@ -84,19 +140,19 @@
         },
         {
             "id": "item_5",
-            "sellerId": "user_2",
+            "sellerId": "user_6",
             "title": "iPhone 13 Mini 128GB",
             "description": "Green color, battery health 88%. Includes case.",
             "price": "300.00",
             "condition": "fair",
-            "status": "sold",
+            "status": "available",
             "images": ["https://picsum.photos/seed/iphone/400/400"]
         },
         {
             "id": "item_6",
-            "sellerId": "user_4",
+            "sellerId": "user_1",
             "title": "Leather Weekend Bag",
-            "description": "Genuine leather, handmade. Never used.",
+            "description": "Genuine leather, handmade. Never used. Smells great.",
             "price": "120.00",
             "condition": "new",
             "status": "available",
@@ -104,7 +160,7 @@
         },
         {
             "id": "item_7",
-            "sellerId": "user_1",
+            "sellerId": "user_6",
             "title": "Nintendo Switch OLED",
             "description": "White joycons, screen protector applied since day 1.",
             "price": "280.00",
@@ -114,9 +170,9 @@
         },
         {
             "id": "item_8",
-            "sellerId": "user_5",
+            "sellerId": "user_3",
             "title": "Vintage Denim Jacket",
-            "description": "Levis oversized jacket from the 90s.",
+            "description": "Levis oversized jacket from the 90s. Classic wash.",
             "price": "65.00",
             "condition": "good",
             "status": "available",
@@ -124,9 +180,9 @@
         },
         {
             "id": "item_9",
-            "sellerId": "user_2",
+            "sellerId": "user_5",
             "title": "AirPods Pro 2nd Gen",
-            "description": "Lost the case, selling buds only.",
+            "description": "Lost the case, selling buds only. Sanitized.",
             "price": "80.00",
             "condition": "fair",
             "status": "available",
@@ -134,63 +190,114 @@
         },
         {
             "id": "item_10",
-            "sellerId": "user_3",
+            "sellerId": "user_1",
             "title": "Dyson V11 Vacuum",
-            "description": "Works great, just upgraded to the V15.",
+            "description": "Works great, just upgraded to the V15. Attachments included.",
             "price": "250.00",
             "condition": "good",
-            "status": "sold",
+            "status": "available",
             "images": ["https://picsum.photos/seed/dyson/400/400"]
         },
         {
             "id": "item_11",
-            "sellerId": "user_4",
+            "sellerId": "user_6",
             "title": "Kindle Paperwhite",
             "description": "Previous gen, waterproof. No ads.",
             "price": "75.00",
             "condition": "good",
-            "status": "sold",
+            "status": "available",
             "images": ["https://picsum.photos/seed/kindle/400/400"]
         },
         {
             "id": "item_12",
             "sellerId": "user_1",
             "title": "Fujifilm X100V",
-            "description": "Silver. Barely used. Comes with hood.",
+            "description": "Silver. Barely used. Comes with hood. Very sought after.",
             "price": "1400.00",
             "condition": "like-new",
             "status": "available",
             "images": ["https://picsum.photos/seed/fuji/400/400"]
+        },
+        {
+            "id": "item_13",
+            "sellerId": "user_3",
+            "title": "PS5 Digital Edition",
+            "description": "Includes one controller and HDMI 2.1 cable.",
+            "price": "350.00",
+            "condition": "good",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/ps5/400/400"]
+        },
+        {
+            "id": "item_14",
+            "sellerId": "user_6",
+            "title": "Mid-Century Modern Lamp",
+            "description": "Original 1960s desk lamp. Rewired for safety.",
+            "price": "180.00",
+            "condition": "good",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/lamp/400/400"]
+        },
+        {
+            "id": "item_15",
+            "sellerId": "user_8",
+            "title": "Mechanical Watch (Seiko)",
+            "description": "Automatic movement, sapphire crystal. Minor scratches on clasp.",
+            "price": "200.00",
+            "condition": "fair",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/watch/400/400"]
+        },
+        {
+            "id": "item_16",
+            "sellerId": "user_1",
+            "title": "Espresso Machine (Gaggia)",
+            "description": "Classic Pro model. Modded with 9 bar spring.",
+            "price": "320.00",
+            "condition": "good",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/coffee/400/400"]
+        },
+        {
+            "id": "item_17",
+            "sellerId": "user_3",
+            "title": "Electric Guitar (Fender)",
+            "description": "Stratocaster Player Series. Polar White.",
+            "price": "550.00",
+            "condition": "like-new",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/guitar/400/400"]
+        },
+        {
+            "id": "item_18",
+            "sellerId": "user_6",
+            "title": "Drone (DJI Mini 2)",
+            "description": "Fly More Combo. Under 250g so no registration needed.",
+            "price": "290.00",
+            "condition": "good",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/drone/400/400"]
+        },
+        {
+            "id": "item_19",
+            "sellerId": "user_8",
+            "title": "Graphic Novel Collection",
+            "description": "Complete Sandman set by Neil Gaiman.",
+            "price": "100.00",
+            "condition": "good",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/books/400/400"]
+        },
+        {
+            "id": "item_20",
+            "sellerId": "user_1",
+            "title": "Smart Thermostat",
+            "description": "Nest Learning Thermostat 3rd Gen.",
+            "price": "130.00",
+            "condition": "like-new",
+            "status": "available",
+            "images": ["https://picsum.photos/seed/nest/400/400"]
         }
     ],
-    "orders": [
-        {
-            "itemId": "item_3",
-            "buyerId": "user_2",
-            "sellerId": "user_1",
-            "amountPaid": "1150.00",
-            "status": "completed"
-        },
-        {
-            "itemId": "item_5",
-            "buyerId": "user_3",
-            "sellerId": "user_2",
-            "amountPaid": "280.00",
-            "status": "completed"
-        },
-        {
-            "itemId": "item_10",
-            "buyerId": "user_1",
-            "sellerId": "user_3",
-            "amountPaid": "250.00",
-            "status": "completed"
-        },
-        {
-            "itemId": "item_11",
-            "buyerId": "user_1",
-            "sellerId": "user_4",
-            "amountPaid": "70.00",
-            "status": "completed"
-        }
-    ]
+    "orders": []
 }

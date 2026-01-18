@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { user, items, messages, itemConditionEnum } from "@/db/schema";
+import {
+    user,
+    items,
+    messages,
+    itemConditionEnum,
+    orders,
+    cardBrandEnum,
+} from "@/db/schema";
 import {
     GCS_DOMAIN,
     ITEM_LIMIT_DEFAULT,
@@ -108,3 +115,51 @@ export const insertMessageSchema = createInsertSchema(messages, {
 }).omit({
     id: true,
 });
+
+/// --- Order Schemas --- ///
+const insertOrderSchema = createInsertSchema(orders, {
+    walletAddress: z
+        .string()
+        .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid ETH Address"),
+    txHash: z.string().regex(/^0x([A-Fa-f0-9]{64})$/),
+    chainId: z.number().min(1, "Chain ID is required"),
+    amountPaidCrypto: z.string().min(1, "Amount paid is required"),
+
+    stripePaymentIntentId: z
+        .string()
+        .startsWith("pi_", "Invalid Payment Intent ID"),
+    cardBrand: z.enum(cardBrandEnum.enumValues),
+    cardLast4: z.string().min(4, "Card last 4 digits are required"),
+});
+const sharedFields = insertOrderSchema.pick({
+    itemId: true,
+    buyerId: true,
+    sellerId: true,
+    amountPaidUsd: true,
+});
+
+export const CreateCryptoOrderSchema = sharedFields
+    .extend({
+        paymentMethod: z.literal("crypto"),
+        ...insertOrderSchema.pick({
+            amountPaidCrypto: true,
+            txHash: true,
+            chainId: true,
+            walletAddress: true,
+        }).shape,
+    })
+    .refine((data) => !!data.txHash, {
+        message: "txHash is required for crypto",
+    });
+export type CreateCryptoOrderInput = z.infer<typeof CreateCryptoOrderSchema>;
+
+export const CreateCardOrderSchema = sharedFields.extend({
+    paymentMethod: z.literal("card"),
+    // Pick card fields from the Drizzle-generated schema
+    ...insertOrderSchema.pick({
+        stripePaymentIntentId: true,
+        cardBrand: true,
+        cardLast4: true,
+    }).shape,
+});
+export type CreateCardOrderInput = z.infer<typeof CreateCardOrderSchema>;

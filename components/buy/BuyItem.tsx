@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import {
     CreditCard,
@@ -9,7 +9,6 @@ import {
     ShieldCheck,
     Loader2,
     CheckCircle,
-    ChevronRight,
 } from "lucide-react";
 
 import { createThirdwebClient, prepareTransaction, toWei } from "thirdweb";
@@ -20,7 +19,8 @@ import {
     useSendTransaction,
 } from "thirdweb/react";
 
-import { ItemWithSeller, ItemWithSellerWallet } from "@/data/items";
+import { type NonNullBuyer } from "@/data/user";
+import { type ItemWithSellerWallet } from "@/data/items";
 import { getEthPriceInUsd } from "@/utils/helpers";
 
 const client = createThirdwebClient({ clientId: "YOUR_CLIENT_ID_HERE" });
@@ -28,13 +28,49 @@ const client = createThirdwebClient({ clientId: "YOUR_CLIENT_ID_HERE" });
 // Sepolia Testnet
 const chain = defineChain(11155111);
 
-export default function BuyItem({ item }: { item: ItemWithSellerWallet }) {
+type BuyItemProps = {
+    item: ItemWithSellerWallet;
+    buyer: NonNullBuyer;
+};
+
+export default function BuyItem({ item, buyer }: BuyItemProps) {
+    console.log("Buyer", buyer);
     const router = useRouter();
+
+    const hasSavedCard = Boolean(buyer.savedCardLast4);
+    const hasSavedCryptoWallet = Boolean(buyer.cryptoWalletAddress);
+    const defaultMethod =
+        hasSavedCryptoWallet && !hasSavedCard ? "crypto" : "card";
+
+    console.log("Default Method", defaultMethod);
+
     const [paymentMethod, setPaymentMethod] = useState<"card" | "crypto">(
-        "card",
+        defaultMethod,
     );
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+
+    const [ethPrice, setEthPrice] = useState<number | null>(null);
+    const [isFetchingPrice, setIsFetchingPrice] = useState(false);
+
+    const isCryptoDisabled = !item.seller?.cryptoWalletAddress;
+
+    // Calculate Total USD
+    const shippingCost = 8.0;
+    const totalUsd = Number(item.price) + shippingCost;
+
+    // fetch ETH price when crypto payment method is selected
+    useEffect(() => {
+        if (paymentMethod === "crypto" && !ethPrice) {
+            setIsFetchingPrice(true);
+            getEthPriceInUsd().then((price) => {
+                console.log("Fetched ETH Price", price);
+                setEthPrice(price);
+                setIsFetchingPrice(false);
+            });
+        }
+    }, [paymentMethod, ethPrice]);
+    const totalEth = ethPrice ? (totalUsd / ethPrice).toFixed(6) : "0.00";
 
     // web3 hooks
     const account = useActiveAccount();
@@ -55,16 +91,22 @@ export default function BuyItem({ item }: { item: ItemWithSellerWallet }) {
             return;
         }
 
+        // Prepare the exact string for the blockchain (avoiding scientific notation)
+        const weiValue = toWei(totalEth.toString());
+
         const transaction = prepareTransaction({
             to: item.seller?.cryptoWalletAddress!,
             chain: chain,
             client: client,
             // doesn't price need to be in crypto instead of usd?
-            value: toWei(item.price.toString()),
+            value: weiValue,
         });
 
         sendTransaction(transaction, {
-            onSuccess: () => setIsSuccess(true),
+            onSuccess: () => {
+                console.log("Tx Success");
+                setIsSuccess(true);
+            },
             onError: (error) => {
                 console.error("Tx Failed", error);
                 alert("Transaction Failed. Check console.");
@@ -73,8 +115,7 @@ export default function BuyItem({ item }: { item: ItemWithSellerWallet }) {
     };
 
     if (isSuccess) {
-        return null;
-        // <SuccessView router={router} /> ??
+        return <SuccessView router={router} />;
     }
 
     return (
@@ -85,7 +126,7 @@ export default function BuyItem({ item }: { item: ItemWithSellerWallet }) {
                     {/* LEFT COL: PAYMENT FORMS */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Payment Method Toggle (Card: Slate 900) */}
-                        <div className="bg-card p-1 rounded-xl border border-border flex shadow-sm">
+                        <div className="bg-card p-1 rounded-xl border border-border flex gap-1 shadow-sm relative z-0">
                             <button
                                 onClick={() => setPaymentMethod("card")}
                                 className={`flex-1 py-3 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all ${
@@ -97,17 +138,33 @@ export default function BuyItem({ item }: { item: ItemWithSellerWallet }) {
                                 <CreditCard className="w-4 h-4" />
                                 Credit Card
                             </button>
-                            <button
-                                onClick={() => setPaymentMethod("crypto")}
-                                className={`flex-1 py-3 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all ${
-                                    paymentMethod === "crypto"
-                                        ? "bg-primary text-primary-foreground shadow-md font-bold" // Teal + Dark Text
-                                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                                }`}
-                            >
-                                <Wallet className="w-4 h-4" />
-                                Pay with Crypto
-                            </button>
+
+                            {/* --- TOOLTIP WRAPPER --- */}
+                            <div className="relative flex-1 group">
+                                <button
+                                    disabled={isCryptoDisabled}
+                                    onClick={() => setPaymentMethod("crypto")}
+                                    className={`w-full h-full py-3 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all ${
+                                        paymentMethod === "crypto"
+                                            ? "bg-primary text-primary-foreground shadow-md font-bold" // Teal + Dark Text
+                                            : isCryptoDisabled
+                                              ? "cursor-not-allowed opacity-50 text-muted-foreground"
+                                              : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                                    }`}
+                                >
+                                    <Wallet className="w-4 h-4" />
+                                    Pay with Crypto
+                                </button>
+
+                                {/* The Tooltip Element */}
+                                {isCryptoDisabled && (
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md border border-border shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                        Seller does not accept crypto
+                                        {/* Tiny arrow pointing down */}
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-popover" />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* FORM AREA (Card: Slate 900) */}
@@ -205,7 +262,7 @@ export default function BuyItem({ item }: { item: ItemWithSellerWallet }) {
                                             Sepolia Testnet Payment
                                         </p>
                                         <p className="text-muted-foreground text-sm">
-                                            Send {item.price} ETH to complete
+                                            Send {totalEth} ETH to complete
                                             purchase
                                         </p>
                                     </div>
