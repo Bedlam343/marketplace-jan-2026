@@ -8,3 +8,5 @@ export const ITEM_LIMIT_MAX = 50;
 
 export const ORDER_LIMIT_DEFAULT = 10;
 export const ORDER_LIMIT_MAX = 25;
+
+export const SEPOLIA_CHAIN_ID = 11155111;
