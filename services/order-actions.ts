@@ -15,4 +15,21 @@ import {
 // internal helper function
 async function finalizeOrder(
     order: CreateCryptoOrderInput | CreateCardOrderInput,
-) {}
+) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!session) {
+        throw new Error("Unauthorized. Please log in to complete purchase.");
+    }
+
+    if (order.buyerId !== session.user.id) {
+        console.log("Buyer ID mismatch", order.buyerId, session.user.id);
+        throw new Error(
+            "Unauthorized. You are not authorized to complete this purchase.",
+        );
+    }
+
+    // create webhook listener instead...
+}
