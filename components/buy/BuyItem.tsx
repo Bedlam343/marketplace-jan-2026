@@ -3,16 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
-import {
-    CreditCard,
-    Wallet,
-    ShieldCheck,
-    Loader2,
-    CheckCircle,
-    ExternalLink,
-    Clock,
-    ArrowRight,
-} from "lucide-react";
+import { CreditCard, Wallet, ShieldCheck, Loader2 } from "lucide-react";
 
 import { createThirdwebClient, prepareTransaction, toWei } from "thirdweb";
 import { defineChain } from "thirdweb/chains";
@@ -27,18 +18,23 @@ import { type ItemWithSellerWallet } from "@/data/items";
 import {
     createPendingCryptoOrder,
     checkOrderStatus,
+    debugSimulateWebhook,
 } from "@/services/orders/actions";
 import { getEthPriceInUsd } from "@/utils/helpers";
 import { SEPOLIA_CHAIN_ID } from "@/utils/constants";
+
+import ProcessingView from "@/components/buy/ProcessingView";
+import SuccessView from "@/components/buy/SuccessView";
+
+// --- CONFIGURATION ---
+const IS_MOCK_MODE = false;
 
 const thirdWebClientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
 if (!thirdWebClientId) {
     throw new Error("Thirdweb Client ID not found");
 }
 
-const client = createThirdwebClient({
-    clientId: thirdWebClientId,
-});
+const client = createThirdwebClient({ clientId: thirdWebClientId });
 const chain = defineChain(SEPOLIA_CHAIN_ID);
 
 type BuyItemProps = {
@@ -53,6 +49,8 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
 
     // --- STATE ---
     const [view, setView] = useState<ViewState>("form");
+    const [processingStep, setProcessingStep] = useState(1); // 1=Sent, 2=Confirming, 3=Finalizing
+
     const [paymentMethod, setPaymentMethod] = useState<"card" | "crypto">(
         buyer.cryptoWalletAddress && !buyer.savedCardLast4 ? "crypto" : "card",
     );
@@ -90,8 +88,10 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
 
     // --- HANDLERS ---
 
-    // 1. POLLING LOGIC
     const startPolling = async (orderId: string) => {
+        // VISUAL: Immediately jump to Step 2
+        setProcessingStep(2);
+
         const maxAttempts = 30; // ~90 seconds
         let attempts = 0;
 
@@ -99,15 +99,18 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
             attempts++;
             try {
                 const result = await checkOrderStatus(orderId);
-
-                let status = "failed";
-                if (result && "status" in result) {
-                    status = result.status;
-                }
+                let status = result?.status || "failed";
 
                 if (status === "completed") {
                     clearInterval(interval);
-                    setView("success");
+
+                    // VISUAL: Jump to Step 3
+                    setProcessingStep(3);
+
+                    // ARTIFICIAL DELAY: Wait 2.5s before showing success screen
+                    setTimeout(() => {
+                        setView("success");
+                    }, 2500);
                 } else if (status === "failed") {
                     clearInterval(interval);
                     alert("Order verification failed. Please contact support.");
@@ -117,7 +120,7 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                 if (attempts >= maxAttempts) {
                     clearInterval(interval);
                     alert(
-                        "Transaction is taking a while. You can safely check your dashboard later.",
+                        "Transaction is taking a while. Check dashboard later.",
                     );
                     router.push("/dashboard");
                 }
@@ -127,15 +130,54 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
         }, 3000);
     };
 
-    // 2. CRYPTO FLOW
+    const handleMockPayment = async () => {
+        if (!account) return alert("Please connect wallet (Mock Mode)");
+
+        // FIX: Generate a valid-length hex string so Zod validation passes
+        const randomHex = Array.from({ length: 64 }, () =>
+            Math.floor(Math.random() * 16).toString(16),
+        ).join("");
+        const mockHash = `0x${randomHex}`;
+
+        console.log("Mock Tx Sent:", mockHash);
+        setTxHash(mockHash);
+
+        // VISUAL: Enter processing mode at Step 1
+        setView("processing");
+        setProcessingStep(1);
+
+        // Create DB Order
+        const result = await createPendingCryptoOrder({
+            itemId: item.id,
+            amountPaidCrypto: totalEth,
+            amountPaidUsd: String(totalUsd),
+            txHash: mockHash,
+            buyerWalletAddress: account.address,
+        });
+
+        if (result.success && result.orderId) {
+            // Start Polling (Will update UI to Step 2)
+            startPolling(result.orderId);
+
+            // TRIGGER: Simulate Webhook after 4 seconds
+            setTimeout(async () => {
+                console.log("Simulating Webhook Event...");
+                await debugSimulateWebhook(result.orderId);
+            }, 4000);
+        } else {
+            // ERROR HANDLING: If mock fails, alert the user so it doesn't just hang
+            alert(
+                "Mock Order Creation Failed: " +
+                    JSON.stringify(result.errors || result.message),
+            );
+            setView("form");
+        }
+    };
+
     const handleCryptoPayment = () => {
         if (!account) return alert("Please connect your wallet first");
-
         const sellerWallet = item.seller?.cryptoWalletAddress;
         if (!sellerWallet) return alert("Seller has no crypto wallet");
-
-        console.log("Buyer wallet:", account.address);
-        console.log("Seller Wallet:", sellerWallet);
 
         const weiValue = toWei(totalEth.toString());
         const transaction = prepareTransaction({
@@ -149,11 +191,9 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
             onSuccess: async (txResult) => {
                 console.log("Tx Sent:", txResult.transactionHash);
                 setTxHash(txResult.transactionHash);
-
-                // A. IMMEDIATE UI SWAP -> Processing View
                 setView("processing");
+                setProcessingStep(1);
 
-                // B. Create Pending Order
                 const result = await createPendingCryptoOrder({
                     itemId: item.id,
                     amountPaidCrypto: totalEth,
@@ -162,13 +202,11 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                     buyerWalletAddress: account.address,
                 });
 
-                // C. Start Polling if order created
                 if (result.success && result.orderId) {
-                    console.log("Order Created. Polling...", result.orderId);
                     startPolling(result.orderId);
                 } else {
                     alert(
-                        "Payment sent, but order creation failed. Save your Tx Hash: " +
+                        "Payment sent, but order creation failed. Save Tx Hash: " +
                             txResult.transactionHash,
                     );
                 }
@@ -180,7 +218,6 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
         });
     };
 
-    // 3. CARD FLOW
     const handleCardPayment = async (e: FormEvent) => {
         e.preventDefault();
         setIsProcessingCard(true);
@@ -188,8 +225,6 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
         setIsProcessingCard(false);
         setView("success");
     };
-
-    // --- RENDER VIEWS ---
 
     if (view === "success") {
         return <SuccessView router={router} itemTitle={item.title} />;
@@ -199,13 +234,14 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
         <div className="min-h-screen bg-background text-foreground py-12 font-sans">
             <div className="max-w-5xl mx-auto px-4 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    {/* LEFT COL: PAYMENT FORMS OR PROCESSING VIEW */}
                     <div className="lg:col-span-2 space-y-6">
                         {view === "processing" ? (
-                            <ProcessingView txHash={txHash} />
+                            <ProcessingView
+                                txHash={txHash}
+                                step={processingStep}
+                            />
                         ) : (
                             <>
-                                {/* Method Toggle */}
                                 <div className="bg-card p-1 rounded-xl border border-border flex gap-1 shadow-sm relative z-0">
                                     <button
                                         onClick={() => setPaymentMethod("card")}
@@ -215,7 +251,7 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                                                 : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                                         }`}
                                     >
-                                        <CreditCard className="w-4 h-4" />
+                                        <CreditCard className="w-4 h-4" />{" "}
                                         Credit Card
                                     </button>
                                     <div className="relative flex-1 group">
@@ -232,30 +268,26 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                                                       : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                                             }`}
                                         >
-                                            <Wallet className="w-4 h-4" />
-                                            Pay with Crypto
+                                            <Wallet className="w-4 h-4" /> Pay
+                                            with Crypto
                                         </button>
                                         {isCryptoDisabled && (
                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md border border-border shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                                 Seller does not accept crypto
-                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-popover" />
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Form Container */}
                                 <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
                                     <h2 className="text-lg font-bold text-card-foreground mb-6">
                                         Payment Details
                                     </h2>
-
                                     {paymentMethod === "card" ? (
                                         <form
                                             onSubmit={handleCardPayment}
                                             className="space-y-5"
                                         >
-                                            {/* ... CARD INPUTS ... */}
                                             <div className="space-y-1.5">
                                                 <label className="text-xs font-bold text-muted-foreground uppercase">
                                                     Cardholder Name
@@ -305,7 +337,6 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                                                     />
                                                 </div>
                                             </div>
-
                                             <button
                                                 disabled={isProcessingCard}
                                                 className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg mt-4 flex items-center justify-center gap-2 disabled:opacity-70 transition-colors shadow-lg shadow-primary/20"
@@ -321,7 +352,6 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                                             </button>
                                         </form>
                                     ) : (
-                                        // --- CRYPTO SECTION MODIFIED HERE ---
                                         <div className="flex flex-col items-center justify-center py-8 space-y-6">
                                             <div className="bg-secondary p-4 rounded-full border border-border">
                                                 <Image
@@ -340,18 +370,14 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                                                     complete purchase
                                                 </p>
                                             </div>
-
-                                            {/* --- CONDITIONAL RENDER: CONNECT vs PAY --- */}
                                             <div className="w-full max-w-xs space-y-3">
                                                 {!account ? (
-                                                    // State 1: Not Connected -> Show Connect Button
                                                     <ConnectButton
                                                         client={client}
                                                         chain={chain}
                                                         theme="dark"
                                                     />
                                                 ) : (
-                                                    // State 2: Connected -> Show Pay Button + Wallet Info
                                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                         <div className="flex items-center justify-center gap-2 mb-3 text-xs text-muted-foreground bg-secondary/50 py-1.5 px-3 rounded-full w-max mx-auto border border-border">
                                                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -369,26 +395,30 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                                                                 </span>
                                                             </span>
                                                         </div>
-
                                                         <button
                                                             onClick={
-                                                                handleCryptoPayment
+                                                                IS_MOCK_MODE
+                                                                    ? handleMockPayment
+                                                                    : handleCryptoPayment
                                                             }
                                                             disabled={
+                                                                !IS_MOCK_MODE &&
                                                                 isTxPending
                                                             }
                                                             className="w-full py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-70 transition-all shadow-lg shadow-primary/20"
                                                         >
-                                                            {isTxPending ? (
+                                                            {!IS_MOCK_MODE &&
+                                                            isTxPending ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />
                                                             ) : (
                                                                 <Wallet className="w-4 h-4" />
                                                             )}
-                                                            {isTxPending
-                                                                ? "Confirming..."
-                                                                : "Send Transaction"}
+                                                            {IS_MOCK_MODE
+                                                                ? "Pay (MOCK MODE)"
+                                                                : isTxPending
+                                                                  ? "Confirming..."
+                                                                  : "Send Transaction"}
                                                         </button>
-
                                                         <div className="mt-3 bg-accent/10 border border-accent/20 rounded-lg p-3 text-xs text-accent text-center">
                                                             <strong>
                                                                 Note:
@@ -406,8 +436,6 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                             </>
                         )}
                     </div>
-
-                    {/* RIGHT COL: ORDER SUMMARY */}
                     <div className="lg:col-span-1">
                         <div className="bg-card border border-border rounded-xl p-6 shadow-sm sticky top-24">
                             <h3 className="font-bold text-card-foreground mb-4">
@@ -451,131 +479,6 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// --- SUB-COMPONENTS (Keep existing ProcessingView and SuccessView) ---
-function ProcessingView({ txHash }: { txHash: string }) {
-    return (
-        <div className="bg-card border border-border rounded-xl p-8 shadow-sm flex flex-col items-center justify-center min-h-[400px] text-center animate-in fade-in zoom-in duration-300">
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6">
-                <Loader2 className="w-8 h-8 animate-spin" />
-            </div>
-
-            <h2 className="text-xl font-bold text-foreground mb-2">
-                Verifying Transaction
-            </h2>
-            <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
-                We verified your payment was sent. Now we are waiting for the
-                blockchain to confirm it.
-            </p>
-
-            {/* Stepper */}
-            <div className="w-full max-w-md space-y-4 mb-8">
-                {/* Step 1: Sent */}
-                <div className="flex items-center gap-4 p-3 bg-secondary/50 rounded-lg border border-border">
-                    <div className="w-6 h-6 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-4 h-4" />
-                    </div>
-                    <div className="text-left">
-                        <p className="text-sm font-medium text-foreground">
-                            Payment Sent
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            Transaction broadcasted
-                        </p>
-                    </div>
-                </div>
-
-                {/* Step 2: Processing */}
-                <div className="flex items-center gap-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                    <div className="w-6 h-6 text-primary flex items-center justify-center shrink-0">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    </div>
-                    <div className="text-left">
-                        <p className="text-sm font-medium text-foreground">
-                            Confirming on Sepolia
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            Waiting for blocks...
-                        </p>
-                    </div>
-                </div>
-
-                {/* Step 3: Pending */}
-                <div className="flex items-center gap-4 p-3 opacity-50">
-                    <div className="w-6 h-6 border-2 border-muted-foreground/30 rounded-full shrink-0" />
-                    <div className="text-left">
-                        <p className="text-sm font-medium text-foreground">
-                            Finalizing Order
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            Updating inventory
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {txHash && (
-                <a
-                    href={`https://sepolia.etherscan.io/tx/${txHash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                    View on Explorer <ExternalLink className="w-3 h-3" />
-                </a>
-            )}
-
-            <div className="mt-8 pt-6 border-t border-border w-full">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
-                    <Clock className="w-3 h-3" />
-                    Please keep this window open. This usually takes 15-30
-                    seconds.
-                </p>
-            </div>
-        </div>
-    );
-}
-
-function SuccessView({
-    router,
-    itemTitle,
-}: {
-    router: any;
-    itemTitle: string;
-}) {
-    return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-            <div className="bg-card w-full max-w-md p-8 rounded-2xl shadow-2xl border border-border text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle className="w-8 h-8" />
-                </div>
-                <h1 className="text-2xl font-bold text-foreground mb-2">
-                    Payment Successful!
-                </h1>
-                <p className="text-muted-foreground mb-8">
-                    Your order for{" "}
-                    <strong className="text-foreground">{itemTitle}</strong> has
-                    been confirmed. The seller has been notified.
-                </p>
-                <div className="space-y-3">
-                    <button
-                        onClick={() => router.push("/dashboard")}
-                        className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group"
-                    >
-                        Return to Dashboard{" "}
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                    <button
-                        onClick={() => router.push("/messages")}
-                        className="w-full py-3 bg-secondary border border-border text-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors"
-                    >
-                        Message Seller
-                    </button>
                 </div>
             </div>
         </div>

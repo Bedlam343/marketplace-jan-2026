@@ -124,3 +124,24 @@ export async function checkOrderStatus(orderId: string) {
         }
     });
 }
+
+export async function debugSimulateWebhook(orderId: string) {
+    if (process.env.NODE_ENV === "production") return; // Safety
+
+    await db
+        .update(orders)
+        .set({ status: "completed" })
+        .where(eq(orders.id, orderId));
+
+    // Also update item if needed, though usually just testing the UI flow
+    const order = await db.query.orders.findFirst({
+        where: eq(orders.id, orderId),
+    });
+    if (order) {
+        await db
+            .update(items)
+            .set({ status: "sold" })
+            .where(eq(items.id, order.itemId));
+    }
+    return { success: true };
+}
