@@ -175,3 +175,10 @@ export const createCardOrderSchema = sharedFields.extend({
     }).shape,
 });
 export type CreateCardOrderInput = z.infer<typeof createCardOrderSchema>;
+
+export const createPendingCardOrderSchema = z.object({
+    stripePaymentId: z.string().startsWith("pi_", "Invalid Payment Intent ID"),
+});
+export type CreatePendingCardOrderInput = z.infer<
+    typeof createPendingCardOrderSchema
+>;

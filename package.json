@@ -16,6 +16,8 @@
     "dependencies": {
         "@google-cloud/storage": "^7.18.0",
         "@next/env": "^16.1.1",
+        "@stripe/react-stripe-js": "^5.4.1",
+        "@stripe/stripe-js": "^8.6.3",
         "alchemy-sdk": "^3.6.5",
         "better-auth": "^1.4.10",
         "date-fns": "^4.1.0",
@@ -29,6 +31,7 @@
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "react-hook-form": "^7.71.1",
+        "stripe": "^20.2.0",
         "thirdweb": "^5.117.2",
         "use-debounce": "^10.1.0",
         "uuid": "^13.0.0",

@@ -10,3 +10,5 @@ export const ORDER_LIMIT_DEFAULT = 10;
 export const ORDER_LIMIT_MAX = 25;
 
 export const SEPOLIA_CHAIN_ID = 11155111;
+
+export const DEFAULT_SHIPPING_COST = 800;

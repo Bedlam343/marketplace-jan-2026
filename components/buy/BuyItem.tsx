@@ -27,7 +27,7 @@ import ProcessingView from "@/components/buy/ProcessingView";
 import SuccessView from "@/components/buy/SuccessView";
 
 // --- CONFIGURATION ---
-const IS_MOCK_MODE = false;
+const IS_MOCK_MODE = true;
 
 const thirdWebClientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
 if (!thirdWebClientId) {
@@ -99,7 +99,7 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
             attempts++;
             try {
                 const result = await checkOrderStatus(orderId);
-                let status = result?.status || "failed";
+                let status = result?.data?.status || "failed";
 
                 if (status === "completed") {
                     clearInterval(interval);
@@ -155,14 +155,16 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
             buyerWalletAddress: account.address,
         });
 
-        if (result.success && result.orderId) {
+        if (result.success && result.data) {
+            const orderId = result.data.orderId;
+
             // Start Polling (Will update UI to Step 2)
-            startPolling(result.orderId);
+            startPolling(orderId);
 
             // TRIGGER: Simulate Webhook after 4 seconds
             setTimeout(async () => {
                 console.log("Simulating Webhook Event...");
-                await debugSimulateWebhook(result.orderId);
+                await debugSimulateWebhook(orderId);
             }, 4000);
         } else {
             // ERROR HANDLING: If mock fails, alert the user so it doesn't just hang
@@ -202,8 +204,8 @@ export default function BuyItem({ item, buyer }: BuyItemProps) {
                     buyerWalletAddress: account.address,
                 });
 
-                if (result.success && result.orderId) {
-                    startPolling(result.orderId);
+                if (result.success && result.data) {
+                    startPolling(result.data.orderId);
                 } else {
                     alert(
                         "Payment sent, but order creation failed. Save Tx Hash: " +
