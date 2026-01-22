@@ -1,4 +1,6 @@
-import { desc, eq, count } from "drizzle-orm";
+"server-only";
+
+import { desc, eq, count, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { orders, items, user } from "@/db/schema";
@@ -20,8 +22,7 @@ export async function getOrders(
             ? eq(orders.buyerId, userId)
             : eq(orders.sellerId, userId);
 
-    // We need to join the 'user' table to get the name of the OTHER person.
-    // We use an alias to avoid confusion with the logged-in user.
+    // Join alias for the "Other Person"
     const counterparty = alias(user, "counterparty");
 
     const counterpartyJoinId =
@@ -30,29 +31,39 @@ export async function getOrders(
     const [totalResult, rows] = await Promise.all([
         // Query A: Total Count
         db.select({ count: count() }).from(orders).where(whereCondition),
+
         // Query B: The Data
         db
             .select({
                 id: orders.id,
                 status: orders.status,
                 createdAt: orders.createdAt,
+
                 payment: {
                     amountPaidUsd: orders.amountPaidUsd,
                     amountPaidCrypto: orders.amountPaidCrypto,
                     method: orders.paymentMethod,
+
+                    // Crypto Specific
                     txHash: orders.txHash,
-                    walletAddress: orders.walletAddress,
+                    buyerWallet: orders.buyerWalletAddress,
+                    sellerWallet: orders.sellerWalletAddress,
+
+                    // Card Specific
                     stripePaymentIntentId: orders.stripePaymentIntentId,
                     cardBrand: orders.cardBrand,
                     cardLast4: orders.cardLast4,
                 },
-                // Item Details (Snapshot)
+
+                // Item Details
                 item: {
                     id: items.id,
                     title: items.title,
-                    image: items.images, // We'll take the first one in the UI
+                    // Take the first image or null
+                    image: sql<string>`${items.images}[1]`,
                 },
-                // The "Other Person" involved in the trade
+
+                // The "Other Person"
                 counterparty: {
                     name: counterparty.name,
                     image: counterparty.image,

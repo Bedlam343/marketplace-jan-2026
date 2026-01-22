@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import {
     LogOut,
     Plus,
@@ -11,8 +11,13 @@ import {
     User as UserIcon,
     Settings,
     ChevronDown,
+    ShoppingBag,
+    Tag,
+    CreditCard,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+
+import NavLink from "@/components/ui/NavLink";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export default function Navbar() {
     const router = useRouter();
@@ -21,24 +26,25 @@ export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    const user = { name: "Jagjit Singh", image: null };
+    const { data: session } = useSession();
+
+    const user = session?.user;
 
     const handleLogout = async () => {
-        await authClient.signOut();
+        await signOut();
         router.push("/login");
     };
 
-    // 1. Scroll Listener
+    // Scroll Listener
     useEffect(() => {
         const handleScroll = () => {
-            // Toggle state if we've scrolled more than 10px
             setIsScrolled(window.scrollY > 10);
         };
-
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // Click Outside Listener
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (
@@ -59,8 +65,8 @@ export default function Navbar() {
         sticky top-0 z-50 w-full transition-all duration-300
         ${
             isScrolled
-                ? "bg-card/80 backdrop-blur-md border-b border-border shadow-sm" // Scrolled State (Glass)
-                : "bg-transparent border-b border-border/75" // Top State (Invisible/Clean)
+                ? "bg-card/80 backdrop-blur-md border-b border-border shadow-sm"
+                : "bg-transparent border-b border-border/75"
         }
       `}
         >
@@ -105,15 +111,14 @@ export default function Navbar() {
                     <div className="relative" ref={menuRef}>
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            // 3. Update button background to match the cleaner header
                             className={`flex items-center gap-2 p-1 pr-2 rounded-full border transition-colors ${
                                 isScrolled
                                     ? "border-border hover:bg-muted"
-                                    : "border-border bg-card hover:bg-muted" // Keep button solid white at top
+                                    : "border-border bg-card hover:bg-muted"
                             }`}
                         >
                             <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center overflow-hidden border border-border shadow-sm">
-                                {user.image ? (
+                                {user?.image ? (
                                     <img
                                         src={user.image}
                                         alt="User"
@@ -131,22 +136,58 @@ export default function Navbar() {
                         </button>
 
                         {isMenuOpen && (
-                            <div className="absolute right-0 mt-2 w-56 bg-popover rounded-xl shadow-lg border border-border py-2 origin-top-right animate-in fade-in zoom-in-95 duration-200">
-                                <div className="px-4 py-2 border-b border-border mb-1">
-                                    <p className="text-sm font-medium text-foreground truncate">
-                                        {user.name}
+                            <div className="absolute right-0 mt-2 w-64 bg-popover rounded-xl shadow-lg border border-border py-2 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                                {/* User Info */}
+                                <div className="px-4 py-3 border-b border-border mb-2 bg-muted/30">
+                                    <p className="text-sm font-bold text-foreground truncate">
+                                        {user?.name}
                                     </p>
                                     <p className="text-xs text-muted-foreground truncate">
-                                        user@example.com
+                                        {user?.email}
                                     </p>
                                 </div>
 
+                                {/* BUYING SECTION */}
+                                <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                    Buying
+                                </div>
                                 <DropdownItem
-                                    href="/profile"
-                                    icon={<UserIcon className="w-4 h-4" />}
+                                    href="/my-purchases"
+                                    icon={<ShoppingBag className="w-4 h-4" />}
                                 >
-                                    My Profile
+                                    My Purchases
                                 </DropdownItem>
+                                <DropdownItem
+                                    href="/saved"
+                                    icon={<Tag className="w-4 h-4" />}
+                                >
+                                    Saved Items
+                                </DropdownItem>
+
+                                <div className="my-2 border-t border-border" />
+
+                                {/* SELLING SECTION */}
+                                <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                    Selling
+                                </div>
+                                <DropdownItem
+                                    href="/dashboard"
+                                    icon={
+                                        <LayoutDashboard className="w-4 h-4" />
+                                    }
+                                >
+                                    My Sales (Dashboard)
+                                </DropdownItem>
+                                <DropdownItem
+                                    href="/my-listings"
+                                    icon={<CreditCard className="w-4 h-4" />}
+                                >
+                                    My Listings
+                                </DropdownItem>
+
+                                <div className="my-2 border-t border-border" />
+
+                                {/* ACCOUNT SECTION */}
                                 <DropdownItem
                                     href="/settings"
                                     icon={<Settings className="w-4 h-4" />}
@@ -157,7 +198,7 @@ export default function Navbar() {
                                 <div className="border-t border-border mt-1 pt-1">
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors font-medium"
                                     >
                                         <LogOut className="w-4 h-4" />
                                         Sign out
@@ -169,33 +210,6 @@ export default function Navbar() {
                 </div>
             </div>
         </header>
-    );
-}
-
-// helper components
-function NavLink({
-    href,
-    active,
-    children,
-}: {
-    href: string;
-    active: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <Link
-            href={href}
-            className={`
-        flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all
-        ${
-            active
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-        }
-      `}
-        >
-            {children}
-        </Link>
     );
 }
 
@@ -211,9 +225,11 @@ function DropdownItem({
     return (
         <Link
             href={href}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
         >
-            {icon}
+            <span className="text-muted-foreground group-hover:text-primary">
+                {icon}
+            </span>
             {children}
         </Link>
     );

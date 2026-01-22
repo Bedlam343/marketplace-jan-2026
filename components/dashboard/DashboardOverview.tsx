@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { DashboardData } from "@/data/dashboard";
+import { type DashboardData } from "@/data/dashboard";
 import {
     Plus,
     DollarSign,
@@ -12,6 +12,10 @@ import {
     TrendingUp,
     Clock,
 } from "lucide-react";
+
+import PaymentBadge from "@/components/dashboard/PaymentBadge";
+import StatCard from "@/components/dashboard/StatCard";
+import EmptyState from "@/components/dashboard/EmptyState";
 
 interface Props {
     data: DashboardData;
@@ -24,7 +28,7 @@ export default function DashboardOverview({ data }: Props) {
         <div className="min-h-screen bg-background font-sans text-foreground">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 {/* --- Header Section --- */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="flex items-center gap-5">
                         <div className="relative shrink-0">
                             {user?.image ? (
@@ -40,7 +44,7 @@ export default function DashboardOverview({ data }: Props) {
                                     </span>
                                 </div>
                             )}
-                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-background rounded-full"></div>
+                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -52,7 +56,7 @@ export default function DashboardOverview({ data }: Props) {
                                     Member since{" "}
                                     {user?.joinedAt
                                         ? new Date(
-                                              user.joinedAt
+                                              user.joinedAt,
                                           ).toLocaleDateString(undefined, {
                                               month: "long",
                                               year: "numeric",
@@ -78,22 +82,20 @@ export default function DashboardOverview({ data }: Props) {
                         label="Total Revenue"
                         value={`$${selling.stats.revenue.toLocaleString()}`}
                         sublabel="Lifetime earnings"
-                        icon={
-                            <DollarSign className="w-5 h-5 text-primary" />
-                        }
-                        trend="+12% this month" // Placeholder for future data
+                        icon={<DollarSign className="w-5 h-5 text-green-500" />}
+                        trend="+12% this month"
                     />
                     <StatCard
                         label="Items Sold"
                         value={selling.stats.ordersCount}
                         sublabel="Completed orders"
-                        icon={<Package className="w-5 h-5 text-primary" />}
+                        icon={<Package className="w-5 h-5 text-blue-500" />}
                     />
                     <StatCard
                         label="Active Listings"
                         value={selling.stats.activeListingCount}
                         sublabel="Currently for sale"
-                        icon={<Tag className="w-5 h-5 text-accent" />}
+                        icon={<Tag className="w-5 h-5 text-purple-500" />}
                     />
                 </div>
 
@@ -121,14 +123,13 @@ export default function DashboardOverview({ data }: Props) {
                                     {selling.recentSales.map((order) => (
                                         <div
                                             key={order.id}
-                                            className="p-4 hover:bg-muted transition-colors flex gap-4 items-center group"
+                                            className="p-4 hover:bg-muted/50 transition-colors flex gap-4 items-center group"
                                         >
+                                            {/* Item Image */}
                                             <div className="w-12 h-12 bg-muted rounded-lg border border-border overflow-hidden shrink-0 relative">
-                                                {order.item?.image?.[0] ? (
+                                                {order.item?.image ? (
                                                     <img
-                                                        src={
-                                                            order.item.image[0]
-                                                        }
+                                                        src={order.item.image}
                                                         className="w-full h-full object-cover"
                                                         alt="Item"
                                                     />
@@ -138,26 +139,43 @@ export default function DashboardOverview({ data }: Props) {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Details */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-slate-900 truncate">
+                                                <p className="font-medium text-foreground truncate">
                                                     {order.item?.title ||
                                                         "Unknown Item"}
                                                 </p>
-                                                <p className="text-xs text-slate-500 mt-0.5">
-                                                    Sold to{" "}
-                                                    <span className="font-medium text-foreground">
-                                                        {order.counterparty
-                                                            ?.name || "Someone"}
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Sold to{" "}
+                                                        <span className="font-medium text-foreground">
+                                                            {order.counterparty
+                                                                ?.name ||
+                                                                "Someone"}
+                                                        </span>
+                                                    </p>
+                                                    <span className="text-[10px] text-muted-foreground">
+                                                        •
                                                     </span>
-                                                </p>
+                                                    <PaymentBadge
+                                                        payment={order.payment}
+                                                    />
+                                                </div>
                                             </div>
+
+                                            {/* Amount */}
                                             <div className="text-right">
-                                                <p className="font-bold text-primary text-sm">
-                                                    +${order.amountPaid}
+                                                <p className="font-bold text-green-600 dark:text-green-400 text-sm">
+                                                    +$
+                                                    {
+                                                        order.payment
+                                                            .amountPaidUsd
+                                                    }
                                                 </p>
                                                 <p className="text-xs text-muted-foreground mt-0.5">
                                                     {new Date(
-                                                        order.createdAt
+                                                        order.createdAt,
                                                     ).toLocaleDateString()}
                                                 </p>
                                             </div>
@@ -167,10 +185,10 @@ export default function DashboardOverview({ data }: Props) {
                             )}
                         </div>
 
-                        {/* Active Listings Mini-Section inside Seller Card */}
-                        <div className="px-6 py-4 bg-muted border-t border-border">
+                        {/* Active Listings Mini-Section */}
+                        <div className="px-6 py-4 bg-muted/30 border-t border-border">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                     Active Listings
                                 </h3>
                                 <Link
@@ -181,7 +199,7 @@ export default function DashboardOverview({ data }: Props) {
                                 </Link>
                             </div>
                             {selling.recentListings.length === 0 ? (
-                                <p className="text-sm text-slate-400 italic">
+                                <p className="text-sm text-muted-foreground italic">
                                     No active listings.
                                 </p>
                             ) : (
@@ -214,7 +232,7 @@ export default function DashboardOverview({ data }: Props) {
                                 My Purchases
                             </h2>
                             <Link
-                                href="/history"
+                                href="/my-purchases"
                                 className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1"
                             >
                                 View all <ArrowRight className="w-3 h-3" />
@@ -235,14 +253,13 @@ export default function DashboardOverview({ data }: Props) {
                                     {buying.recentOrders.map((order) => (
                                         <div
                                             key={order.id}
-                                            className="p-4 hover:bg-muted transition-colors flex gap-4 items-center"
+                                            className="p-4 hover:bg-muted/50 transition-colors flex gap-4 items-center"
                                         >
+                                            {/* Image */}
                                             <div className="w-12 h-12 bg-muted rounded-lg border border-border overflow-hidden shrink-0 relative">
-                                                {order.item?.image?.[0] ? (
+                                                {order.item?.image ? (
                                                     <img
-                                                        src={
-                                                            order.item.image[0]
-                                                        }
+                                                        src={order.item.image}
                                                         className="w-full h-full object-cover"
                                                         alt="Item"
                                                     />
@@ -252,26 +269,42 @@ export default function DashboardOverview({ data }: Props) {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Details */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-slate-900 truncate">
+                                                <p className="font-medium text-foreground truncate">
                                                     {order.item?.title ||
                                                         "Item removed"}
                                                 </p>
-                                                <p className="text-xs text-slate-500 mt-0.5">
-                                                    From{" "}
-                                                    <span className="font-medium text-foreground">
-                                                        {order.counterparty
-                                                            ?.name ||
-                                                            "Unknown Seller"}
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        From{" "}
+                                                        <span className="font-medium text-foreground">
+                                                            {order.counterparty
+                                                                ?.name ||
+                                                                "Unknown"}
+                                                        </span>
+                                                    </p>
+                                                    <span className="text-[10px] text-muted-foreground">
+                                                        •
                                                     </span>
-                                                </p>
+                                                    <PaymentBadge
+                                                        payment={order.payment}
+                                                    />
+                                                </div>
                                             </div>
+
+                                            {/* Amount & Status */}
                                             <div className="text-right">
                                                 <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-primary/10 text-primary mb-1">
                                                     {order.status}
                                                 </div>
                                                 <p className="text-sm font-medium text-foreground">
-                                                    -${order.amountPaid}
+                                                    -$
+                                                    {
+                                                        order.payment
+                                                            .amountPaidUsd
+                                                    }
                                                 </p>
                                             </div>
                                         </div>
@@ -282,66 +315,6 @@ export default function DashboardOverview({ data }: Props) {
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
-
-// --- Helper Components ---
-
-function StatCard({
-    label,
-    value,
-    sublabel,
-    icon,
-    trend,
-}: {
-    label: string;
-    value: string | number;
-    sublabel: string;
-    icon: React.ReactNode;
-    trend?: string;
-}) {
-    return (
-        <div className="p-6 bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-                <div className="p-2 bg-muted rounded-lg border border-border">
-                    {icon}
-                </div>
-                {trend && (
-                    <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                        {trend}
-                    </span>
-                )}
-            </div>
-            <div>
-                <h3 className="text-muted-foreground text-sm font-medium uppercase tracking-wider">
-                    {label}
-                </h3>
-                <p className="text-3xl font-bold text-foreground mt-1 tracking-tight">
-                    {value}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 font-medium">
-                    {sublabel}
-                </p>
-            </div>
-        </div>
-    );
-}
-
-function EmptyState({
-    icon,
-    message,
-    subMessage,
-}: {
-    icon: React.ReactNode;
-    message: string;
-    subMessage: string;
-}) {
-    return (
-        <div className="flex flex-col items-center justify-center h-48 text-center p-6">
-            <div className="bg-muted p-3 rounded-full mb-3">{icon}</div>
-            <p className="text-foreground font-medium text-sm">{message}</p>
-            <p className="text-muted-foreground text-xs mt-1">{subMessage}</p>
         </div>
     );
 }

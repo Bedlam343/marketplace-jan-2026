@@ -1,5 +1,6 @@
-import { type ItemWithSellerWallet } from "@/data/items";
+import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
+import { type ItemWithSellerWallet } from "@/data/items";
 
 export default function OrderSummary({ item }: { item: ItemWithSellerWallet }) {
     const shippingCost = 8.0;
@@ -12,9 +13,12 @@ export default function OrderSummary({ item }: { item: ItemWithSellerWallet }) {
             </h3>
             <div className="flex gap-4 mb-6 pb-6 border-b border-border">
                 <div className="w-16 h-16 bg-secondary rounded-lg overflow-hidden relative border border-border">
-                    <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                        IMG
-                    </div>
+                    <Image
+                        src={item.images[0]}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                    />
                 </div>
                 <div>
                     <h4 className="font-medium text-foreground line-clamp-2">
