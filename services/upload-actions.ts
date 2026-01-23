@@ -14,7 +14,7 @@ type GetSignedURLResponse = {
 
 export const getGCPUploadSignedUrl = async (
     fileType: string,
-    fileSize: number
+    fileSize: number,
 ): Promise<GetSignedURLResponse> => {
     return authenticatedAction(
         { fileType, fileSize },
@@ -37,8 +37,9 @@ export const getGCPUploadSignedUrl = async (
             }
 
             const extension = fileType.split("/")[1];
+            const username_id = `${session.user.name}_${session.user.id}`;
             const filename = `${LISTING_IMAGES_DIR}/${
-                session.user.id
+                username_id
             }/${uuidv4()}.${extension}`;
 
             try {
@@ -62,6 +63,6 @@ export const getGCPUploadSignedUrl = async (
                     message: "Failed to generate upload signed URL.",
                 };
             }
-        }
+        },
     );
 };

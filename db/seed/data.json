@@ -204,67 +204,45 @@
             "price": "180.00",
             "condition": "good",
             "status": "available",
-            "images": ["https://picsum.photos/seed/lamp/400/400"]
+            "images": [
+                "https://storage.googleapis.com/marketplace-listing-data/listing-images/A9tWXtM1QKvJSMoMylKwiqzOrjpkaQEl/bd9b1057-bd2b-4f12-9146-8179e4f36e1d.webp"
+            ]
         },
         {
-            "id": "item_15",
-            "sellerId": "user_8",
+            "id": "item_10",
+            "sellerId": "user_1",
             "title": "Mechanical Watch (Seiko)",
             "description": "Automatic movement, sapphire crystal. Minor scratches on clasp.",
             "price": "200.00",
             "condition": "fair",
             "status": "available",
-            "images": ["https://picsum.photos/seed/watch/400/400"]
+            "images": [
+                "https://storage.googleapis.com/marketplace-listing-data/listing-images/A9tWXtM1QKvJSMoMylKwiqzOrjpkaQEl/a2cedaec-b463-4a14-b52e-14de2648c981.webp"
+            ]
         },
         {
-            "id": "item_16",
+            "id": "item_11",
             "sellerId": "user_1",
-            "title": "Espresso Machine (Gaggia)",
+            "title": "Espresso Machine",
             "description": "Classic Pro model. Modded with 9 bar spring.",
             "price": "320.00",
             "condition": "good",
             "status": "available",
-            "images": ["https://picsum.photos/seed/coffee/400/400"]
+            "images": [
+                "https://storage.googleapis.com/marketplace-listing-data/listing-images/Jagi%20Seller_A9tWXtM1QKvJSMoMylKwiqzOrjpkaQEl/5881bc0c-159b-45cd-8607-66d9404f8e89.webp"
+            ]
         },
         {
-            "id": "item_17",
-            "sellerId": "user_3",
-            "title": "Electric Guitar (Fender)",
+            "id": "item_12",
+            "sellerId": "user_2",
+            "title": "Electric Guitar",
             "description": "Stratocaster Player Series. Polar White.",
             "price": "550.00",
             "condition": "like-new",
             "status": "available",
-            "images": ["https://picsum.photos/seed/guitar/400/400"]
-        },
-        {
-            "id": "item_18",
-            "sellerId": "user_6",
-            "title": "Drone (DJI Mini 2)",
-            "description": "Fly More Combo. Under 250g so no registration needed.",
-            "price": "290.00",
-            "condition": "good",
-            "status": "available",
-            "images": ["https://picsum.photos/seed/drone/400/400"]
-        },
-        {
-            "id": "item_19",
-            "sellerId": "user_8",
-            "title": "Graphic Novel Collection",
-            "description": "Complete Sandman set by Neil Gaiman.",
-            "price": "100.00",
-            "condition": "good",
-            "status": "available",
-            "images": ["https://picsum.photos/seed/books/400/400"]
-        },
-        {
-            "id": "item_20",
-            "sellerId": "user_1",
-            "title": "Smart Thermostat",
-            "description": "Nest Learning Thermostat 3rd Gen.",
-            "price": "130.00",
-            "condition": "like-new",
-            "status": "available",
-            "images": ["https://picsum.photos/seed/nest/400/400"]
+            "images": [
+                "https://storage.googleapis.com/marketplace-listing-data/listing-images/Sarah%20Buyer_SbAURrEjm2vtIJswJTKRsJKK4QQZjOFj/b37c9f1d-eb5c-42fb-a7da-1c1e9a221baa.webp"
+            ]
         }
     ],
     "orders": []
