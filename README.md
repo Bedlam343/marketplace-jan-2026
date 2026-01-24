@@ -94,10 +94,10 @@ Screenshots included in this repository highlight:
 
 - Frontend: React / Next.js (App Router)
 - Backend: Next.js Server Actions & route handlers (no separate Node API server)
-- Database: PostgreSQL
+- Database: PostgreSQL for relational data, Google Cloud Platform for large files and images
 - Authentication: Better Auth (role-based authentication & session management)
-- Payments: Stripe and crypto integrations
-- Search: AI-assisted search layer
+- Payments: Stripe for fiat payments, Thirdweb and Alchemy for crypto payments
+- Search: AI-assisted search layer using OpenAI embeddings and PostgreSQL vector search
 
 The architecture uses **server-side actions co-located with UI** for clearer data flow and faster iteration, while maintaining strong separation between client and server logic.
 
