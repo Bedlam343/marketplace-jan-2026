@@ -119,13 +119,11 @@ export default function CryptoPaymentForm({
 
     return (
         <div className="bg-card border border-border rounded-xl p-8 shadow-sm text-center space-y-6 animate-in fade-in zoom-in duration-300">
-            <div className="bg-secondary p-4 rounded-full border border-border inline-block">
-                <Image
-                    src="/ethereum-logo.png"
-                    width={40}
-                    height={40}
-                    alt="ETH"
-                />
+            <div
+                className="bg-secondary p-4 rounded-full border border-border
+                w-[100px] h-[100px] inline-flex items-center justify-center"
+            >
+                <Image src="/ethereum.svg" width={50} height={50} alt="ETH" />
             </div>
             <div>
                 <p className="text-foreground font-medium">

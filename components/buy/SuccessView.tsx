@@ -30,7 +30,7 @@ export default function SuccessView({
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <button
-                        onClick={() => router.push("/messages")}
+                        onClick={() => alert("Messaging feature coming soon!")}
                         className="w-full py-3 bg-secondary border border-border text-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors"
                     >
                         Message Seller

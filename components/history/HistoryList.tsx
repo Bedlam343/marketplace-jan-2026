@@ -58,9 +58,26 @@ export default function HistoryList({
                                 </div>
 
                                 <div className="text-right shrink-0">
-                                    <div className="text-xl font-bold text-foreground">
-                                        ${order.payment.amountPaidUsd}
-                                    </div>
+                                    {isCrypto &&
+                                    order.payment.amountPaidCrypto ? (
+                                        <>
+                                            <div className="text-xl font-black text-foreground flex items-center justify-end gap-1">
+                                                {order.payment.amountPaidCrypto}
+                                                <span className="text-sm font-bold text-muted-foreground">
+                                                    ETH
+                                                </span>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground mt-0.5">
+                                                ≈ ${order.payment.amountPaidUsd}{" "}
+                                                USD
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-xl font-bold text-foreground">
+                                            ${order.payment.amountPaidUsd}
+                                        </div>
+                                    )}
+
                                     <div className="text-xs text-muted-foreground mt-1">
                                         {new Date(
                                             order.createdAt,
@@ -95,7 +112,9 @@ export default function HistoryList({
                                         {isCrypto
                                             ? "Crypto (ETH)"
                                             : order.payment.cardBrand
-                                              ? `${order.payment.cardBrand.toUpperCase()} •••• ${order.payment.cardLast4}`
+                                              ? `${order.payment.cardBrand.toUpperCase()} •••• ${
+                                                    order.payment.cardLast4
+                                                }`
                                               : "Card"}
                                     </span>
                                 </div>

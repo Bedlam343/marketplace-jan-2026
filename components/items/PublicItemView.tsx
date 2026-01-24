@@ -188,7 +188,11 @@ export default function PublicItemView({
                                     </Link>
                                     <button
                                         className="flex-1 min-w-[200px] py-4 bg-card border border-border hover:border-primary text-foreground font-bold rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
-                                        onClick={() => alert("Message flow!")}
+                                        onClick={() =>
+                                            alert(
+                                                "Messaging feature coming soon!",
+                                            )
+                                        }
                                     >
                                         <MessageCircle className="w-5 h-5" />
                                         Message Seller
@@ -345,7 +349,7 @@ export default function PublicItemView({
                         rounded-2xl backdrop-blur-2xl transition-all border border-white/10 flex 
                         items-center justify-center gap-3 active:scale-[0.98] shadow-2xl shadow-black/40 
                         pointer-events-auto px-6 py-3"
-                        onClick={() => alert("Message flow!")}
+                        onClick={() => alert("Messaging feature coming soon!")}
                     >
                         <MessageCircle className="w-5 h-5" />
                         Message Seller
