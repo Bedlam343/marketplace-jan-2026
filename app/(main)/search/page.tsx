@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getItems } from "@/data/items";
 import { itemFilterSchema } from "@/db/validation";
 import { SearchDashboard } from "@/components/search/SearchDashboard";
+import { SearchSkeleton } from "@/components/search/SearchSkeleton";
 
 interface SearchPageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -32,11 +33,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     };
 
     const safeFilters = itemFilterSchema.parse(filters);
-
     const { data, pagination } = await getItems(safeFilters);
 
     return (
-        <Suspense fallback={<div>Loading Dashboard...</div>}>
+        <Suspense fallback={<SearchSkeleton />}>
             <SearchDashboard
                 initialData={data}
                 initialPagination={pagination}
