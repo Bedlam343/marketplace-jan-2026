@@ -112,7 +112,7 @@ async function main() {
                     sellerId: userMap[item.sellerId],
                     title: item.title,
                     description: item.description,
-                    price: item.price,
+                    price: item.price as string,
                     condition: item.condition as any,
                     status: item.status as any,
                     images: item.images,
