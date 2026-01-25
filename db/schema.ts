@@ -16,6 +16,16 @@ import {
     paymentMethodEnum,
     cardBrandEnum,
 } from "@/utils/enums";
+
+// re-export enums so drizzle-kit can pick them up
+export {
+    itemConditionEnum,
+    itemStatusEnum,
+    orderStatusEnum,
+    paymentMethodEnum,
+    cardBrandEnum,
+};
+
 import { PG_VECTOR_DIMENSION } from "@/utils/constants";
 
 // User Table and Session Table for Better Auth Integration
