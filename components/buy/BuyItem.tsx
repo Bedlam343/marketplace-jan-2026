@@ -15,7 +15,7 @@ import CryptoPaymentForm from "@/components/buy/CryptoPaymentForm";
 import PaymentSelector from "@/components/buy/PaymentSelector";
 import { StripeWrapper } from "@/components/buy/Stripe";
 
-const IS_MOCK_MODE = true;
+const IS_MOCK_MODE = false;
 
 type BuyItemProps = {
     item: ItemWithSellerWallet;
