@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import EditorNavbar from "@/components/items/EditorNavbar";
 
 export default function EditorLayout({
@@ -7,7 +8,9 @@ export default function EditorLayout({
 }) {
     return (
         <div className="min-h-screen bg-background">
-            <EditorNavbar />
+            <Suspense fallback={null}>
+                <EditorNavbar />
+            </Suspense>
             <main>{children}</main>
         </div>
     );
