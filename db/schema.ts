@@ -94,16 +94,33 @@ export const items = pgTable("items", {
     updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
+// Chat
 export const messages = pgTable("messages", {
     id: uuid("id").primaryKey().defaultRandom(),
-    senderId: text("senderId")
+    conversationId: uuid("conversationId")
         .notNull()
-        .references(() => user.id),
-    receiverId: text("receiverId")
+        .references(() => conversations.id),
+    senderId: text("senderId")
         .notNull()
         .references(() => user.id),
     content: text("content").notNull(),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+export const conversations = pgTable("conversations", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    itemId: text("itemId")
+        .notNull()
+        .references(() => items.id),
+    participantOneId: text("participantOneId")
+        .notNull()
+        .references(() => user.id),
+    participantTwoId: text("participantTwoId")
+        .notNull()
+        .references(() => user.id),
+    lastMessageId: uuid("lastMessageId"), // no reference here to break circularity
+
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(), // used to sort the inbox
 });
 
 export const orders = pgTable("orders", {
