@@ -28,7 +28,7 @@ export default function NavbarGuest() {
                 {/* Left Side */}
                 <div className="flex items-center gap-8">
                     <Link
-                        href="/dashboard"
+                        href="#"
                         className="flex items-center gap-2 transition-opacity hover:opacity-90"
                     >
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
