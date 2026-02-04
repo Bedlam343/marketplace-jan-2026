@@ -8,6 +8,7 @@ import {
     vector,
     integer,
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 import {
     itemConditionEnum,
@@ -163,3 +164,57 @@ export const orders = pgTable("orders", {
         .defaultNow()
         .$onUpdate(() => new Date()),
 });
+
+// relationships
+export const usersRelations = relations(user, ({ many }) => ({
+    conversationsAsBuyer: many(conversations, {
+        relationName: "participantOne",
+    }),
+    conversationsAsSeller: many(conversations, {
+        relationName: "participantTwo",
+    }),
+}));
+
+export const itemRelations = relations(items, ({ one, many }) => {
+    return {
+        seller: one(user, {
+            fields: [items.sellerId],
+            references: [user.id],
+        }),
+        conversations: many(conversations),
+    };
+});
+
+export const conversationsRelations = relations(conversations, ({ one }) => ({
+    item: one(items, {
+        fields: [conversations.itemId],
+        references: [items.id],
+    }),
+
+    participantOne: one(user, {
+        fields: [conversations.participantOneId],
+        references: [user.id],
+        relationName: "participantOne", // Matches the user relation name above
+    }),
+    participantTwo: one(user, {
+        fields: [conversations.participantTwoId],
+        references: [user.id],
+        relationName: "participantTwo",
+    }),
+
+    lastMessage: one(messages, {
+        fields: [conversations.lastMessageId],
+        references: [messages.id],
+    }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+    conversation: one(conversations, {
+        fields: [messages.conversationId],
+        references: [conversations.id],
+    }),
+    sender: one(user, {
+        fields: [messages.senderId],
+        references: [user.id],
+    }),
+}));
