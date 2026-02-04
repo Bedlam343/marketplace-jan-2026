@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { Send, X, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+
 import { type ItemWithSeller } from "@/data/items";
+import { sendFirstMessage } from "@/services/chat/actions";
 
 interface FirstMessageModalProps {
     isOpen: boolean;
@@ -16,6 +19,7 @@ export default function FirstMessageModal({
     onClose,
     item,
 }: FirstMessageModalProps) {
+    const router = useRouter();
     const [message, setMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
 
@@ -27,23 +31,21 @@ export default function FirstMessageModal({
 
         setIsSending(true);
 
-        // --- DUMMY API CALL START ---
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const result = await sendFirstMessage({
+            itemId: item.id,
+            content: message,
+        });
 
-        console.log("Simulating Server Action...");
-        console.log(`Creating chat for Item: ${item.id}`);
-        console.log(`Message: ${message}`);
-        console.log("Simulating Pusher Event Trigger...");
+        if (result.success && result.data?.conversationId) {
+            setMessage("");
+            onClose();
 
-        // --- DUMMY API CALL END ---
-
-        setIsSending(false);
-        setMessage("");
-        onClose();
-
-        // In the real version, we will router.push('/messages/[id]') here
-        alert("Message sent! (Simulated redirect to chat)");
+            // redirect to the full chat page
+            router.push(`/messages/${result.data.conversationId}`);
+        } else {
+            alert(result.message || "Failed to send message");
+            setIsSending(false);
+        }
     };
 
     return (
