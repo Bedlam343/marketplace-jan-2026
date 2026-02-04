@@ -11,6 +11,7 @@ if (!appId || !key || !secret || !cluster) {
     throw new Error("Pusher environment variables not found");
 }
 
+// triggers the events
 export const pusher = new Pusher({
     appId,
     key,
