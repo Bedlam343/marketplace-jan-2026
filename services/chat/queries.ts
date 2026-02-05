@@ -46,3 +46,7 @@ export async function getUserConversations(userId: string) {
 
     return formatted;
 }
+
+export type ConversationSnippets = Awaited<
+    ReturnType<typeof getUserConversations>
+>;
