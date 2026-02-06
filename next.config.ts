@@ -6,8 +6,9 @@ const nextConfig: NextConfig = {
         serverActions: {
             allowedOrigins: [
                 "localhost:3000",
-                "bug-free-parakeet-g669x4p49pqh9p7q-3000.app.github.dev",
-                "https://bug-free-parakeet-g669x4p49pqh9p7q-3000.app.github.dev",
+                process.env.CODESPACE_NAME ?? "",
+                `https://${process.env.CODESPACE_NAME}`,
+                process.env.BETTER_AUTH_URL!,
             ],
         },
     },
@@ -34,6 +35,7 @@ const nextConfig: NextConfig = {
     },
     env: {
         NEXT_PUBLIC_CODESPACE_NAME: process.env.CODESPACE_NAME,
+        NEXT_PUBLIC_BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     },
 };
 
