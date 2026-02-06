@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    env: {
+        NEXT_PUBLIC_CODESPACE_NAME: process.env.CODESPACE_NAME,
+    },
 };
 
 export default nextConfig;

@@ -11,5 +11,5 @@
             "onAutoForward": "openBrowser"
         }
     },
-    "forwardPorts": [4983, 3000]
+    "forwardPorts": [4983, 3000],
 }
