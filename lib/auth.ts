@@ -6,6 +6,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 
+import { getBaseUrl } from "@/utils/helpers";
+
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
         provider: "pg", // PostgreSQL
@@ -22,8 +24,11 @@ export const auth = betterAuth({
         autoSignIn: true,
     },
 
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-    trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:3000"],
+    baseURL: getBaseUrl(),
+    trustedOrigins: [
+        "http://localhost:3000",
+        getBaseUrl(),
+    ].filter(Boolean),
 
     plugins: [nextCookies()], // auto-manage cookies in Next.js
 });
