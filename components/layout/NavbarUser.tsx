@@ -46,12 +46,7 @@ export default function NavbarUser({
         try {
             await signOut();
 
-            // Refresh the current route cache
-            router.refresh();
-
-            if (pathname !== "/search") {
-                router.replace("/search");
-            }
+            window.location.href = "/search";
         } catch (error) {
             console.error("Logout failed", error);
         }

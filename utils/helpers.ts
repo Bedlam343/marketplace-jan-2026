@@ -13,11 +13,12 @@ export const getEthPriceInUsd = async (): Promise<number> => {
 };
 
 export const getBaseUrl = () => {
-  const codespaceName = process.env.CODESPACE_NAME || process.env.NEXT_PUBLIC_CODESPACE_NAME;
+    // const codespaceName =
+    //     process.env.CODESPACE_NAME || process.env.NEXT_PUBLIC_CODESPACE_NAME;
 
-  if (codespaceName) {
-    return `https://${codespaceName}-3000.app.github.dev`;
-  }
+    // if (codespaceName) {
+    //     return `https://${codespaceName}-3000.app.github.dev`;
+    // }
 
-  return process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+    return process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
 };

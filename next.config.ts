@@ -7,7 +7,9 @@ const nextConfig: NextConfig = {
             allowedOrigins: [
                 "localhost:3000",
                 process.env.CODESPACE_NAME ?? "",
-                `https://${process.env.CODESPACE_NAME}`,
+                process.env.CODESPACE_NAME
+                    ? `https://${process.env.CODESPACE_NAME}`
+                    : "",
                 process.env.BETTER_AUTH_URL!,
             ],
         },
