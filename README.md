@@ -61,22 +61,6 @@ This type of system is commonly used for:
 
 ---
 
-## Demo Access
-
-Demo credentials are available to showcase real user flows:
-
-**Buyer Account**\
-Email: [sarah_buyer@example.com](mailto:demo-buyer@example.com)\
-Password: Password123!
-
-**Seller Account**\
-Email: [mike_seller@example.com](mailto:demo-seller@example.com)\
-Password: Password123!
-
-These accounts demonstrate listing creation, search, messaging, and payment workflows.
-
----
-
 ## Screenshots
 
 Screenshots included in this repository highlight:
