@@ -61,19 +61,6 @@ This type of system is commonly used for:
 
 ---
 
-## Screenshots
-
-Screenshots included in this repository highlight:
-
-- Authentication and onboarding
-- Role-based dashboards
-- Listing creation and management
-- Search and discovery
-- Messaging interface
-- Payment flows
-
----
-
 ## Technical Overview
 
 - Frontend: React / Next.js (App Router)
